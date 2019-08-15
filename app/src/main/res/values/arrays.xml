@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="filters">
+        <item>@string/fecha</item>
+        <item>@string/prioridad</item>
+        <item>@string/titulo</item>
+    </array>
+
+    <array name="prioridad">
+        <item>@string/prioridad_alta</item>
+        <item>@string/prioridad_media</item>
+        <item>@string/prioridad_baja</item>
+    </array>
+</resources>

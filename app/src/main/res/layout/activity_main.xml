@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<FrameLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/frame_layout"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/rv_main"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="40dp" />
+
+    <android.support.v7.widget.Toolbar
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:layout_gravity="bottom"
+        android:id="@+id/toolbar_main_act"
+        android:background="@color/colorPrimary">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/toma_una_nota"
+                android:textColor="@color/iconsOnMenu"
+                android:textSize="15sp"
+                android:layout_gravity="center|start"
+                android:onClick="onNewNoteClicked"
+                android:layout_weight="100"
+                android:layout_marginStart="20dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center|end"
+                android:onClick="onNewChecklistClicked"
+                android:background="@drawable/ic_check_box"
+                android:layout_marginEnd="30dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center|end"
+                android:onClick="onNewAlertClicked"
+                android:background="@drawable/ic_alert_menu"
+                android:layout_marginEnd="30dp"/>
+
+        </LinearLayout>
+
+    </android.support.v7.widget.Toolbar>
+
+</FrameLayout>

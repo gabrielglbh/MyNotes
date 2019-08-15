@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/menu_filter_by"
+        android:orderInCategory="4"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/ic_reorder"
+        android:title="@string/menu_filter"/>
+
+    <item
+        android:id="@+id/menu_order_by"
+        android:orderInCategory="3"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/ic_up"
+        android:title="@string/order_by_menu"/>
+
+    <item
+        android:title="@string/delete_elem"
+        android:orderInCategory="2"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/ic_delete"
+        android:id="@+id/menu_delete"
+        android:visible="false"/>
+
+    <item
+        android:title="@string/deselect_all"
+        android:orderInCategory="1"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/ic_close_menu"
+        android:id="@+id/menu_deselect_all"
+        android:visible="false"/>
+</menu>

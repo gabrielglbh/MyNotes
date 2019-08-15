@@ -1,0 +1,45 @@
+<resources>
+    <string name="app_name">MyNotes</string>
+
+    <string name="empty_notes">No tienes notas ni recordatorios :(</string>
+
+    <string name="menu_filter">Filtro</string>
+    <string name="order_by_dialog">Filtrar por</string>
+    <string name="order_by_menu">Orden</string>
+    <string name="recordatorios_menu">Recordatorios</string>
+    <string name="checklists_menu">Checklists</string>
+
+    <string name="titulo">Título</string>
+    <string name="prioridad">Prioridad</string>
+    <string name="fecha">Fecha</string>
+
+    <string name="toma_una_nota">Escribe una nota…</string>
+
+    <string name="edit_titulo">Título…</string>
+    <string name="priority_note">Prioridad</string>
+
+    <string name="prioridad_alta">Alta</string>
+    <string name="prioridad_media">Media</string>
+    <string name="prioridad_baja">Baja</string>
+
+    <string name="escribe_nota">Nota…</string>
+
+    <string name="error_toast_delete">Nota descartada</string>
+    <string name="error_toast_delete_checklist">Lista descartada</string>
+    <string name="update_note">Nota</string>
+    <string name="empty_note">No hay ninguna nota</string>
+
+    <string name="ok_submit">Guardar Nota</string>
+    <string name="archived_notes">Notas Archivadas</string>
+    <string name="archivar_nota">Archivar Nota</string>
+    <string name="poner_recordatorio">Poner Recordatorio</string>
+    <string name="delete_elem">borrar_elementos</string>
+    <string name="deselect_all">Deshacer selección</string>
+    <string name="delete_notes_question">¿Eliminar las notas seleccionadas?</string>
+    <string name="message_delete">Las notas se eliminarán permanentemente.</string>
+    <string name="eliminar_nota">Eliminar nota</string>
+
+    <string name="cambiar_prioridad_toolbar_alta">Cambiar Prioridad: ALTA</string>
+    <string name="cambiar_prioridad_toolbar_media">Cambiar Prioridad: MEDIA</string>
+    <string name="cambiar_prioridad_toolbar_baja">Cambiar Prioridad: BAJA</string>
+</resources>

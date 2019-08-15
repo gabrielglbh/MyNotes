@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="colorPrimary">#F7971E</color>
+    <color name="colorPrimaryDark">#d67e0f</color>
+    <color name="colorAccent">#3232D6</color>
+    <color name="colorAccentBackgroundSwipe">#269b36</color>
+
+    <color name="colorPrimaryActionBar">#FAFAFA</color>
+
+    <color name="colorTextTitle">#222222</color>
+    <color name="colorTextContent">#333333</color>
+    <color name="colorBorderNote">#888888</color>
+
+    <color name="priority1">#c73a30</color>
+    <color name="priority2">#de9e2f</color>
+    <color name="priority3">#96c227</color>
+
+    <color name="icons">#F7971E</color>s
+    <color name="iconsOnMenu">#FFFFFF</color>
+
+    <color name="selectedFrame">#e2e2e2</color>
+</resources>

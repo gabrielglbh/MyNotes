@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    android:layout_width="match_parent"
+    android:layout_height="187dp"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:id="@+id/tv_frame"
+        android:layout_height="match_parent"
+        android:layout_margin="8dp"
+        android:background="@drawable/round_square"/>
+
+    <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/ll_linear_layout_main"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="10dp"
+        android:background="@color/colorPrimaryActionBar">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="5dp"
+            android:gravity="end|bottom"
+            android:layout_marginEnd="10dp"
+            android:id="@+id/tv_date_note"
+            android:textSize="14sp"
+            android:textStyle="italic"
+            android:textColor="@color/colorTextContent" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tv_priority_note"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginEnd="12dp"
+                android:layout_marginStart="15dp"
+                android:background="@drawable/circle_priority" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/tv_title_note"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:textColor="@color/colorTextTitle" />
+
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/tv_content_note"
+            android:textColorLink="@color/colorAccent"
+            android:autoLink="web"
+            android:linksClickable="false"
+            android:textSize="15sp"
+            android:textColor="@color/colorTextContent"
+            android:layout_marginTop="5dp"
+            android:layout_marginStart="10dp"/>
+
+    </LinearLayout>
+
+</FrameLayout>
