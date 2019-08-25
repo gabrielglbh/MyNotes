@@ -52,7 +52,7 @@ public class CreateCheckListAdapter extends RecyclerView.Adapter<CreateCheckList
      *
      * */
     @Override
-    public void onBindViewHolder(@NonNull final CheckElemViewHolder checkElemViewHolder, int pos) {
+    public void onBindViewHolder(@NonNull final CheckElemViewHolder checkElemViewHolder, final int pos) {
         final EditText edit = checkElemViewHolder.editText;
         final TextView button = checkElemViewHolder.buttonDelete;
         final int position = checkElemViewHolder.getAdapterPosition();
@@ -78,16 +78,16 @@ public class CreateCheckListAdapter extends RecyclerView.Adapter<CreateCheckList
 
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int count) {
-                if (count > 0) {
-                    final String text = edit.getText().toString();
-                    textList.set(position, text);
-                    checkedList.set(position, checkBox.isChecked());
-                }
+
             }
 
             @Override
             public void afterTextChanged(Editable editable) {
-
+                /* final String text = edit.getText().toString();
+                if (position <= textList.size() - 1) {
+                    textList.set(position, text);
+                    checkedList.set(position, checkBox.isChecked());
+                } */
             }
         });
 
@@ -95,9 +95,25 @@ public class CreateCheckListAdapter extends RecyclerView.Adapter<CreateCheckList
             @Override
             public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
                 if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    textList.add("");
-                    checkedList.add(false);
-                    notifyItemInserted(position+1);
+
+                    Log.d("0", "onEditorAction: ------------------------------- BEFORE " + textList);
+                    final String text = edit.getText().toString();
+                    Log.d("2", "onEditorAction: ------------------------------- TEXT " + text);
+                    if (position <= textList.size() - 1 && !text.trim().isEmpty()) {
+                        textList.set(position, text);
+                        checkedList.set(position, checkBox.isChecked());
+                    }
+
+                    if (position == textList.size() - 1) {
+                        textList.add("");
+                        checkedList.add(false);
+                    } else {
+                        textList.add(position + 1, "");
+                        checkedList.add(position + 1, false);
+                    }
+                    notifyItemInserted(position + 1);
+                    notifyItemRangeChanged(0, textList.size());
+                    Log.d("1", "onEditorAction: ------------------------------- AFTER " + textList);
                     return true;
                 }
                 return false;
@@ -107,11 +123,11 @@ public class CreateCheckListAdapter extends RecyclerView.Adapter<CreateCheckList
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (textList.size() > position) {
-                    edit.setText("");
+                if (textList.size() != 1) {
                     textList.remove(position);
                     checkedList.remove(position);
                     notifyItemRemoved(position);
+                    notifyItemRangeChanged(0, textList.size());
                 }
             }
         });

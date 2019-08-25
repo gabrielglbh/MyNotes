@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:orientation="vertical"
+        tools:context=".CreateNoteActivity"
+        android:id="@+id/scroll_view"
+        android:focusableInTouchMode="true"
+        android:focusable="true">
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/edit_titulo"
+            android:textSize="19sp"
+            android:textStyle="bold"
+            android:background="@android:color/transparent"
+            android:id="@+id/et_edit_note_title"
+            android:inputType="textCapSentences|textMultiLine" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/colorPrimary"
+            android:layout_marginTop="20dp"/>
+
+        <android.support.v7.widget.RecyclerView
+            android:layout_marginTop="20dp"
+            android:id="@+id/rv_main_checklist"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="45dp"/>
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/escribe_nota"
+            android:textColorLink="@color/colorAccent"
+            android:linksClickable="true"
+            android:autoLink="web"
+            android:textSize="17sp"
+            android:background="@android:color/transparent"
+            android:id="@+id/et_edit_note_description"
+            android:layout_marginTop="20dp"
+            android:gravity="top|start"
+            android:inputType="textCapSentences|textMultiLine"
+            android:layout_marginBottom="45dp"/>
+
+    </LinearLayout>
+
+    <android.support.v7.widget.Toolbar
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:layout_gravity="bottom"
+        android:background="@color/colorPrimary">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/cambiar_prioridad_toolbar_alta"
+                android:id="@+id/tv_toolbar_prioridad"
+                android:textColor="@color/iconsOnMenu"
+                android:textSize="15sp"
+                android:layout_gravity="center|start"
+                android:layout_weight="100"
+                android:onClick="onChangePriority"
+                android:layout_marginStart="20dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center|end"
+                android:onClick="changeCreationMode"
+                android:id="@+id/toolbar_creation_mode"
+                android:background="@drawable/ic_check_box"
+                android:layout_marginEnd="30dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center|end"
+                android:background="@drawable/ic_alert_menu"
+                android:layout_marginEnd="30dp"/>
+
+        </LinearLayout>
+
+    </android.support.v7.widget.Toolbar>
+</FrameLayout>

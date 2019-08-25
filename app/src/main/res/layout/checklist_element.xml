@@ -19,7 +19,7 @@
         android:textSize="17sp"
         android:backgroundTint="@color/colorTextTitle"
         android:textColor="@color/colorTextContent"
-        android:inputType="textCapSentences|textMultiLine"
+        android:inputType="textCapSentences|textMultiLine|textNoSuggestions"
         android:imeOptions="actionDone"
         android:layout_weight="2"/>
 

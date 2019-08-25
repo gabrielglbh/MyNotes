@@ -88,7 +88,16 @@ public class CreateNoteActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Intent intent = getIntent();
-        setContentView(R.layout.activity_create_note);
+        if (intent.hasExtra(ID_CREATION_MODE)) {
+            if (intent.getStringExtra(ID_CREATION_MODE).equals(CREATION_MODE_1)) { // NOTA
+                isOnCreationMode = CREATION_MODE_1;
+            } else if (intent.getStringExtra(ID_CREATION_MODE).equals(CREATION_MODE_2)) { // CHECKLIST
+                isOnCreationMode = CREATION_MODE_2;
+            }
+        }
+
+        if (isOnCreationMode.equals(CREATION_MODE_1)) setContentView(R.layout.activity_create_note);
+        else if (isOnCreationMode.equals(CREATION_MODE_2)) setContentView(R.layout.activity_create_checklist);
 
         mEditTextTitle = findViewById(R.id.et_edit_note_title);
         mEditTextDescription = findViewById(R.id.et_edit_note_description);
@@ -101,14 +110,6 @@ public class CreateNoteActivity extends AppCompatActivity {
         getSharedPreferences();
 
         archivedPressed = false;
-
-        if (intent.hasExtra(ID_CREATION_MODE)) {
-            if (intent.getStringExtra(ID_CREATION_MODE).equals(CREATION_MODE_1)) { // NOTA
-                isOnCreationMode = CREATION_MODE_1;
-            } else if (intent.getStringExtra(ID_CREATION_MODE).equals(CREATION_MODE_2)) { // CHECKLIST
-                isOnCreationMode = CREATION_MODE_2;
-            }
-        }
 
         if (isOnCreationMode.equals(CREATION_MODE_1)) { // NOTA
             mToolbarCreationMode.setBackground(getDrawable(R.drawable.ic_check_box));
@@ -128,7 +129,6 @@ public class CreateNoteActivity extends AppCompatActivity {
                 editTextListCheckBox.add("");
                 isCheckedListCheckBox.add(false);
                 mAdpater.setBinds(editTextListCheckBox, isCheckedListCheckBox);
-                mEditTextTitle.requestFocus();
             }
         }
     }
