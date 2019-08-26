@@ -41,10 +41,9 @@ import java.util.Date;
 public class CreateNoteActivity extends AppCompatActivity {
 
     private EditText mEditTextTitle, mEditTextDescription;
-    private TextView mToolbarCreationMode, mTextViewToolbarPrioridad;
+    private TextView mToolbarCreationMode;
     private LinearLayout sc;
     private NoteEntity mNote;
-    private AlertDialog alt;
     private Toast mToast;
     private Menu mMenu;
 
@@ -56,14 +55,17 @@ public class CreateNoteActivity extends AppCompatActivity {
     private final String CREATION_MODE_1 = "nota";
     private final String CREATION_MODE_2 = "checklist";
 
+    private final String DELIMITER = "#/@/#";
+
     private boolean archivedPressed;
     private boolean isOnDelete = false;
     private String titleOnDelete, descriptionOnDelete, checksOnDelete;
     private String isOnCreationMode;
-    private int itemClicked;
+    private int esChecklist;
 
     private ArrayList<String> editTextListCheckBox = new ArrayList<>();
     private ArrayList<Boolean> isCheckedListCheckBox = new ArrayList<>();
+    private ArrayList<Boolean> ct = new ArrayList<>();
     private RecyclerView mRecyclerView;
     private CreateCheckListAdapter mAdpater;
 
@@ -91,19 +93,19 @@ public class CreateNoteActivity extends AppCompatActivity {
         if (intent.hasExtra(ID_CREATION_MODE)) {
             if (intent.getStringExtra(ID_CREATION_MODE).equals(CREATION_MODE_1)) { // NOTA
                 isOnCreationMode = CREATION_MODE_1;
+                esChecklist = 1;
             } else if (intent.getStringExtra(ID_CREATION_MODE).equals(CREATION_MODE_2)) { // CHECKLIST
                 isOnCreationMode = CREATION_MODE_2;
+                esChecklist = 0;
             }
         }
 
-        if (isOnCreationMode.equals(CREATION_MODE_1)) setContentView(R.layout.activity_create_note);
-        else if (isOnCreationMode.equals(CREATION_MODE_2)) setContentView(R.layout.activity_create_checklist);
+        setContentView(R.layout.activity_create_note);
 
         mEditTextTitle = findViewById(R.id.et_edit_note_title);
         mEditTextDescription = findViewById(R.id.et_edit_note_description);
         mRecyclerView = findViewById(R.id.rv_main_checklist);
         mToolbarCreationMode = findViewById(R.id.toolbar_creation_mode);
-        mTextViewToolbarPrioridad = findViewById(R.id.tv_toolbar_prioridad);
         sc = findViewById(R.id.scroll_view);
 
         setLinksEditText();
@@ -120,12 +122,13 @@ public class CreateNoteActivity extends AppCompatActivity {
                 mEditTextDescription.requestFocus();
             }
         } else if(isOnCreationMode.equals(CREATION_MODE_2)) {  // CHECKLIST
-            setRecyclerView(editTextListCheckBox, isCheckedListCheckBox);
             mToolbarCreationMode.setBackground(getDrawable(R.drawable.ic_note));
             mEditTextDescription.setVisibility(View.GONE);
             if (intent.hasExtra(UPDATE_NOTE)) {
+                setRecyclerView(editTextListCheckBox, isCheckedListCheckBox, true);
                 loadQuery(intent);
             } else {
+                setRecyclerView(editTextListCheckBox, isCheckedListCheckBox, false);
                 editTextListCheckBox.add("");
                 isCheckedListCheckBox.add(false);
                 mAdpater.setBinds(editTextListCheckBox, isCheckedListCheckBox);
@@ -183,7 +186,6 @@ public class CreateNoteActivity extends AppCompatActivity {
             if (intent.hasExtra(UPDATE_NOTE)) {
                 if (mEditTextDescription.getText().toString().equals(mNote.getDescripcion())
                         && mEditTextTitle.getText().toString().equals(mNote.getTitulo())
-                        && getPriority() == mNote.getPrioridad()
                         && mNote.getArchivada() == checkArchivada(archivedPressed)) {
                 } else {
                     if (mEditTextDescription.getText().toString().isEmpty()
@@ -231,7 +233,6 @@ public class CreateNoteActivity extends AppCompatActivity {
                     if (description.equals(mNote.getDescripcion())
                             && areChecked.equals(mNote.getCheckbox())
                             && mEditTextTitle.getText().toString().equals(mNote.getTitulo())
-                            && getPriority() == mNote.getPrioridad()
                             && mNote.getArchivada() == checkArchivada(archivedPressed)) {
                     } else {
                         if (et.size() <= 1 && mEditTextTitle.getText().toString().isEmpty()) {
@@ -258,11 +259,11 @@ public class CreateNoteActivity extends AppCompatActivity {
      * Para crear listas dinámicas quitar setHasFixedSize
      *
      * */
-    private void setRecyclerView(ArrayList<String> text, ArrayList<Boolean> checks) {
+    private void setRecyclerView(ArrayList<String> text, ArrayList<Boolean> checks, boolean mode) {
         LinearLayoutManager lm = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(lm);
 
-        mAdpater = new CreateCheckListAdapter(this, text, checks);
+        mAdpater = new CreateCheckListAdapter(this, text, checks, mode);
 
         mRecyclerView.setAdapter(mAdpater);
     }
@@ -320,15 +321,14 @@ public class CreateNoteActivity extends AppCompatActivity {
      * */
     private void setFields(NoteEntity note) {
         mEditTextTitle.setText(note.getTitulo());
-        setPriority(note.getPrioridad());
         if (note.getArchivada() == 0) { archivedPressed = false; }
         else { archivedPressed = true; }
 
         if (isOnCreationMode.equals(CREATION_MODE_1)) {      // NOTA
             mEditTextDescription.setText(note.getDescripcion());
         } else if(isOnCreationMode.equals(CREATION_MODE_2)) {   // CHECKLIST
-            String[] description = note.getDescripcion().split("-");
-            String[] checkboxes = note.getCheckbox().split("-");
+            String[] description = note.getDescripcion().split(DELIMITER);
+            String[] checkboxes = note.getCheckbox().split(DELIMITER);
             ArrayList<String> texts = new ArrayList<>(Arrays.asList(description));
             ArrayList<String> checks = new ArrayList<>(Arrays.asList(checkboxes));
 
@@ -338,69 +338,6 @@ public class CreateNoteActivity extends AppCompatActivity {
             }
 
             transformDescriptionAndCheckbox(texts.toArray(new String[0]), checks.toArray(new String[0]));
-        }
-    }
-
-    /**
-     *
-     * setPriority: En base a la prioridad de la nota alamacenada, hace check en el RadioButton
-     *
-     * */
-    private void setPriority(int n) {
-        switch (n) {
-            case 1:
-                mTextViewToolbarPrioridad.setText(getResources().getText(R.string.cambiar_prioridad_toolbar_alta));
-                break;
-            case 2:
-                mTextViewToolbarPrioridad.setText(getResources().getText(R.string.cambiar_prioridad_toolbar_media));
-                break;
-            case 3:
-                mTextViewToolbarPrioridad.setText(getResources().getText(R.string.cambiar_prioridad_toolbar_baja));
-                break;
-        }
-        setPriorityBullet();
-    }
-
-    /**
-     *
-     * getPriority: En base al RadioButton seleccionado, se recoge un integer asociado
-     *
-     * */
-    private int getPriority() {
-        String prior = mTextViewToolbarPrioridad.getText().toString();
-        int priority = 0;
-        switch (prior) {
-            case "Cambiar Prioridad: ALTA":
-                priority = 1;
-                break;
-            case "Cambiar Prioridad: MEDIA":
-                priority = 2;
-                break;
-            case "Cambiar Prioridad: BAJA":
-                priority = 3;
-                break;
-        }
-        return priority;
-    }
-
-    /**
-     *
-     * setPriorityBullet: Se llama después de onResume o onCreate para poner correctamente las bullets
-     * del alertdialog de prioridad
-     *
-     * */
-    private void setPriorityBullet() {
-        String prior = mTextViewToolbarPrioridad.getText().toString();
-        switch (prior) {
-            case "Cambiar Prioridad: ALTA":
-                itemClicked = 0;
-                break;
-            case "Cambiar Prioridad: MEDIA":
-                itemClicked = 1;
-                break;
-            case "Cambiar Prioridad: BAJA":
-                itemClicked = 2;
-                break;
         }
     }
 
@@ -499,7 +436,7 @@ public class CreateNoteActivity extends AppCompatActivity {
             areChecked = res[1];
         }
 
-        return new NoteEntity(title, description, areChecked, getPriority(), date, archivada);
+        return new NoteEntity(title, description, areChecked, date, archivada, esChecklist);
     }
 
     /**
@@ -511,7 +448,7 @@ public class CreateNoteActivity extends AppCompatActivity {
         ArrayList<String> et = mAdpater.getTextList();
         ArrayList<Boolean> ck = mAdpater.getCheckedList();
 
-        String[] res = {TextUtils.join("-", et), TextUtils.join("-", ck)};
+        String[] res = {TextUtils.join(DELIMITER, et), TextUtils.join(DELIMITER, ck)};
         return res;
     }
 
@@ -583,12 +520,16 @@ public class CreateNoteActivity extends AppCompatActivity {
             mRecyclerView.setVisibility(View.VISIBLE);
             mEditTextDescription.setVisibility(View.GONE);
 
-            setRecyclerView(texts, checks);
+            setRecyclerView(texts, checks, false);
+
+            esChecklist = 0;
         } else if (isOnCreationMode.equals(CREATION_MODE_2)) {
             isOnCreationMode = CREATION_MODE_1;
+            esChecklist = 1;
             mToolbarCreationMode.setBackground(getDrawable(R.drawable.ic_check_box));
 
             ArrayList<String> et = mAdpater.getTextList();
+            ct = mAdpater.getCheckedList();
             String textParsed = TextUtils.join("\n", et);
 
             mRecyclerView.setVisibility(View.GONE);
@@ -597,39 +538,6 @@ public class CreateNoteActivity extends AppCompatActivity {
             mEditTextDescription.setText(textParsed);
             mEditTextDescription.setSelection(mEditTextDescription.getText().length());
         }
-    }
-
-    /**
-     *
-     * onChangePriority: Crea un AlertDialog para cambiar la prioridad
-     *
-     * */
-    public void onChangePriority(View view) {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(this,
-                R.style.Theme_MaterialComponents_Light_Dialog_Alert);
-        builder.setTitle(R.string.priority_note)
-                .setSingleChoiceItems(R.array.prioridad,
-                        itemClicked,
-                        new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int filter) {
-                                switch (filter) {
-                                    case 0:
-                                        itemClicked = 0;
-                                        break;
-                                    case 1:
-                                        itemClicked = 1;
-                                        break;
-                                    case 2:
-                                        itemClicked = 2;
-                                        break;
-                                }
-                                setPriority(itemClicked+1);
-                                alt.dismiss();
-                            }
-                        });
-        alt = builder.create();
-        alt.show();
     }
 
     /**
@@ -676,7 +584,7 @@ public class CreateNoteActivity extends AppCompatActivity {
                 if (isOnCreationMode.equals(CREATION_MODE_1)) {
                     mEditTextDescription.setText(descriptionOnDelete);
                 } else if (isOnCreationMode.equals(CREATION_MODE_2)){
-                    transformDescriptionAndCheckbox(descriptionOnDelete.split("-"), checksOnDelete.split("-"));
+                    transformDescriptionAndCheckbox(descriptionOnDelete.split(DELIMITER), checksOnDelete.split(DELIMITER));
                 }
             }
         });

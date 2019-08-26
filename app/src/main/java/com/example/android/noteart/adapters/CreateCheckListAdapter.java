@@ -27,11 +27,13 @@ public class CreateCheckListAdapter extends RecyclerView.Adapter<CreateCheckList
     private Context mContext;
     private ArrayList<String> textList;
     private ArrayList<Boolean> checkedList;
+    private boolean mode;
 
-    public CreateCheckListAdapter(Context ctx, ArrayList<String> editTexts, ArrayList<Boolean> checkedList) {
+    public CreateCheckListAdapter(Context ctx, ArrayList<String> editTexts, ArrayList<Boolean> checkedList, boolean mode) {
         mContext = ctx;
         textList = editTexts;
         this.checkedList = checkedList;
+        this.mode = mode;
     }
 
     @NonNull
@@ -68,26 +70,17 @@ public class CreateCheckListAdapter extends RecyclerView.Adapter<CreateCheckList
         edit.setText(textList.get(position));
         edit.setImeOptions(EditorInfo.IME_ACTION_DONE);
         edit.setRawInputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
-        edit.requestFocus();
 
-        edit.addTextChangedListener(new TextWatcher() {
+        if (position == textList.size() - 1 && !mode) {
+            edit.requestFocus();
+        }
+
+        edit.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int count) {
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-                /* final String text = edit.getText().toString();
-                if (position <= textList.size() - 1) {
-                    textList.set(position, text);
-                    checkedList.set(position, checkBox.isChecked());
-                } */
+            public void onFocusChange(View view, boolean b) {
+                if (b) {
+                    mode = false;
+                }
             }
         });
 
@@ -96,24 +89,16 @@ public class CreateCheckListAdapter extends RecyclerView.Adapter<CreateCheckList
             public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
                 if (actionId == EditorInfo.IME_ACTION_DONE) {
 
-                    Log.d("0", "onEditorAction: ------------------------------- BEFORE " + textList);
                     final String text = edit.getText().toString();
-                    Log.d("2", "onEditorAction: ------------------------------- TEXT " + text);
-                    if (position <= textList.size() - 1 && !text.trim().isEmpty()) {
+                    if (position <= textList.size() - 1) {
                         textList.set(position, text);
                         checkedList.set(position, checkBox.isChecked());
                     }
 
-                    if (position == textList.size() - 1) {
-                        textList.add("");
-                        checkedList.add(false);
-                    } else {
-                        textList.add(position + 1, "");
-                        checkedList.add(position + 1, false);
-                    }
+                    textList.add(position + 1, "");
+                    checkedList.add(position + 1, false);
                     notifyItemInserted(position + 1);
                     notifyItemRangeChanged(0, textList.size());
-                    Log.d("1", "onEditorAction: ------------------------------- AFTER " + textList);
                     return true;
                 }
                 return false;

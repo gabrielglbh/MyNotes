@@ -4,6 +4,8 @@ import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
@@ -44,7 +46,7 @@ public class ListMainActivity extends AppCompatActivity implements NoteListAdapt
     private ArrayList<Integer> mNotesIdList = new ArrayList<>();
     private String defaultFilter = "Fecha";
     private String defaultOrder = "DESC";
-    private int itemClicked = 0;
+    private int itemClicked = 0, totalCountSelected = 1;
     private boolean isDeleteModeOpen = false;
 
     private final String orderAsc = "ASC";
@@ -165,9 +167,6 @@ public class ListMainActivity extends AppCompatActivity implements NoteListAdapt
                                     case 1:
                                         itemClicked = 1;
                                         break;
-                                    case 2:
-                                        itemClicked = 2;
-                                        break;
                                 }
                                 defaultFilter = filterArray[filter];
                                 loadNotes();
@@ -189,13 +188,14 @@ public class ListMainActivity extends AppCompatActivity implements NoteListAdapt
                 break;
             case R.id.menu_notas_archivadas:
                 Intent listArchived = new Intent(getApplicationContext(), ListNotesArchivedActivity.class);
-                DeleteModeOperations.deleteModeShutdownNotes(this, mTextViewListSelected, mMenu, mNoteListSelected, false);
                 startActivity(listArchived);
                 break;
             case R.id.menu_delete:
                 makeAlertDeleteMode();
                 break;
             case R.id.menu_deselect_all:
+                totalCountSelected = 1;
+                setTitle(getString(R.string.app_name));
                 isDeleteModeOpen = DeleteModeOperations.deleteModeShutdownNotes(this,
                         mTextViewListSelected, mMenu, mNoteListSelected, false);
                 CustomSharedPreferences.setSharedPreferencesDeleteMode(this, ID_DELETEMODE_BUNDLE, isDeleteModeOpen);
@@ -211,18 +211,14 @@ public class ListMainActivity extends AppCompatActivity implements NoteListAdapt
      *
      * */
     private void setFiltersOfBundle() {
-        final String PRIORIDAD = "Prioridad";
         final String TITULO = "Título";
         final String FECHA = "Fecha";
         switch (defaultFilter) {
             case FECHA:
                 itemClicked = 0;
                 break;
-            case PRIORIDAD:
-                itemClicked = 1;
-                break;
             case TITULO:
-                itemClicked = 2;
+                itemClicked = 1;
                 break;
         }
         loadNotes();
@@ -325,16 +321,22 @@ public class ListMainActivity extends AppCompatActivity implements NoteListAdapt
         if (isDeleteModeOpen) {
             DeleteModeOperations.changeColorFrame(frame, this, R.color.selectedFrame);
             if (mNotesIdList.contains(id)) {
+                totalCountSelected--;
+                setTitle(Integer.toString(totalCountSelected));
                 DeleteModeOperations.removeNote(id, frame, note,
                         mNotesIdList, mTextViewListSelected, mNoteListSelected);
                 DeleteModeOperations.changeColorFrame(frame, this, R.color.colorPrimaryActionBar);
                 if (mNotesIdList.isEmpty()) {
+                    setTitle(getString(R.string.app_name));
+                    totalCountSelected = 1;
                     isDeleteModeOpen = DeleteModeOperations.deleteModeShutdownNotes(this,
                             mTextViewListSelected, mMenu, mNoteListSelected, false);
                     CustomSharedPreferences.setSharedPreferencesDeleteMode(this, ID_DELETEMODE_BUNDLE, isDeleteModeOpen);
                 }
             }
             else {
+                totalCountSelected++;
+                setTitle(Integer.toString(totalCountSelected));
                 mNoteListSelected.add(note);
                 mTextViewListSelected.add(frame);
                 mNotesIdList.add(id);
@@ -343,8 +345,8 @@ public class ListMainActivity extends AppCompatActivity implements NoteListAdapt
             Intent createNote = new Intent(getApplicationContext(), CreateNoteActivity.class);
             createNote.putExtra(NOTE_ID, id);
             createNote.putExtra(UPDATE_NOTE, true);
-            if (!note.getCheckbox().contains("-")) createNote.putExtra(ID_CREATION_MODE, CREATION_MODE_1);
-            else createNote.putExtra(ID_CREATION_MODE, CREATION_MODE_2);
+            if (note.getEsChecklist() == 1) createNote.putExtra(ID_CREATION_MODE, CREATION_MODE_1);
+            else if (note.getEsChecklist() == 0) createNote.putExtra(ID_CREATION_MODE, CREATION_MODE_2);
             startActivity(createNote);
         }
     }
@@ -358,6 +360,7 @@ public class ListMainActivity extends AppCompatActivity implements NoteListAdapt
     @Override
     public void onElementLongClicked(int id, NoteEntity note, LinearLayout frame) {
         isDeleteModeOpen = true;
+        setTitle(Integer.toString(totalCountSelected));
         CustomSharedPreferences.setSharedPreferencesDeleteMode(this, ID_DELETEMODE_BUNDLE, isDeleteModeOpen);
         DeleteModeOperations.changeColorFrame(frame, this, R.color.selectedFrame);
 
@@ -402,7 +405,7 @@ public class ListMainActivity extends AppCompatActivity implements NoteListAdapt
     public void makeAlertDeleteMode() {
         final AlertDialog.Builder builder = new AlertDialog.Builder(this,
                 R.style.Theme_MaterialComponents_Light_Dialog_Alert)
-                .setTitle(R.string.delete_notes_question)
+                .setTitle("¿Quieres eliminar las " + totalCountSelected + " notas seleccionadas?")
                 .setMessage(R.string.message_delete)
                 .setNegativeButton("No", new DialogInterface.OnClickListener() {
                     @Override
@@ -428,6 +431,9 @@ public class ListMainActivity extends AppCompatActivity implements NoteListAdapt
 
                         isDeleteModeOpen = false;
                         CustomSharedPreferences.setSharedPreferencesDeleteMode(getApplicationContext(), ID_DELETEMODE_BUNDLE, isDeleteModeOpen);
+
+                        totalCountSelected = 1;
+                        setTitle(getString(R.string.app_name));
 
                         altDelete.dismiss();
                         makeSnackBar();

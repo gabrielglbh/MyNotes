@@ -75,19 +75,13 @@
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="@string/cambiar_prioridad_toolbar_alta"
-                android:id="@+id/tv_toolbar_prioridad"
-                android:textColor="@color/iconsOnMenu"
                 android:textSize="15sp"
-                android:layout_gravity="center|start"
-                android:layout_weight="100"
-                android:onClick="onChangePriority"
-                android:layout_marginStart="20dp"/>
+                android:layout_weight="100"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center|end"
+                android:layout_gravity="center"
                 android:onClick="changeCreationMode"
                 android:id="@+id/toolbar_creation_mode"
                 android:background="@drawable/ic_check_box"
@@ -96,7 +90,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center|end"
+                android:layout_gravity="center"
                 android:background="@drawable/ic_alert_menu"
                 android:layout_marginEnd="30dp"/>
 

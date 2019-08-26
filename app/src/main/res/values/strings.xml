@@ -35,7 +35,6 @@
     <string name="poner_recordatorio">Poner Recordatorio</string>
     <string name="delete_elem">borrar_elementos</string>
     <string name="deselect_all">Deshacer selección</string>
-    <string name="delete_notes_question">¿Eliminar las notas seleccionadas?</string>
     <string name="message_delete">Las notas se eliminarán permanentemente.</string>
     <string name="eliminar_nota">Eliminar nota</string>
 

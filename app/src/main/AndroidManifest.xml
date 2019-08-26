@@ -21,7 +21,8 @@
         <activity
             android:name=".CreateNoteActivity"
             android:label=""
-            android:parentActivityName=".ListMainActivity"/>
+            android:parentActivityName=".ListMainActivity"
+            android:windowSoftInputMode="adjustResize"/>
         <activity
             android:name=".ListNotesArchivedActivity"
             android:label="@string/archived_notes"

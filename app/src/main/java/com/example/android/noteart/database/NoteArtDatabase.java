@@ -9,7 +9,7 @@ import android.arch.persistence.room.migration.Migration;
 import android.content.Context;
 import android.support.annotation.NonNull;
 
-@Database(entities = {NoteEntity.class}, version = 8, exportSchema = false)
+@Database(entities = {NoteEntity.class}, version = 9, exportSchema = false)
 @TypeConverters(TypeConversors.class)
 public abstract class NoteArtDatabase extends RoomDatabase {
 
@@ -58,6 +58,16 @@ public abstract class NoteArtDatabase extends RoomDatabase {
         }
     };
 
+    private static final Migration MIGRATION8_9 = new Migration(8, 9) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("DROP TABLE 'notas'");
+            database.execSQL("CREATE TABLE 'notas' ('id' INTEGER NOT NULL PRIMARY KEY, 'titulo' TEXT," +
+                    "'descripcion' TEXT, 'checkbox' TEXT, 'esChecklist' INTEGER NOT NULL," +
+                    "'fecha' INTEGER, 'archivada' INTEGER NOT NULL)");
+        }
+    };
+
     public static NoteArtDatabase getsInstance(Context ctx) {
         if (sInstance == null) {
             synchronized (LOCK) {
@@ -65,7 +75,7 @@ public abstract class NoteArtDatabase extends RoomDatabase {
                         ctx.getApplicationContext(),
                         NoteArtDatabase.class,
                         NAME)
-                        .addMigrations(MIGRATION7_8)
+                        .addMigrations(MIGRATION8_9)
                         .build();
             }
         }

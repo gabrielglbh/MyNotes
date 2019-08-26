@@ -28,6 +28,8 @@ public class NoteListAdapter extends RecyclerView.Adapter<NoteListAdapter.NoteVi
     private Context mContext;
     private List<NoteEntity> mNoteEntityList;
 
+    private final String DELIMITER = "#/@/#";
+
     private static final String DATE_FORMAT = "dd/MM/yy";
     private SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT, Locale.getDefault());
 
@@ -60,9 +62,13 @@ public class NoteListAdapter extends RecyclerView.Adapter<NoteListAdapter.NoteVi
         noteViewHolder.mTextViewTitle.setText(note.getTitulo());
         String textOfCheckBox = note.getDescripcion();
         String isCheckedText = note.getCheckbox();
-        if (isCheckedText.contains("-")) { // Es una checklist
-            String[] textsArr = textOfCheckBox.split("-");
-            String[] checksArr = isCheckedText.split("-");
+
+        if (note.getTitulo().isEmpty()) noteViewHolder.mTextViewTitle.setVisibility(View.GONE);
+        else noteViewHolder.mTextViewTitle.setVisibility(View.VISIBLE);
+
+        if (note.getEsChecklist() == 0) { // Es una checklist
+            String[] textsArr = textOfCheckBox.split(DELIMITER);
+            String[] checksArr = isCheckedText.split(DELIMITER);
             ArrayList<String> texts = new ArrayList<>(Arrays.asList(textsArr));
             ArrayList<String> checks = new ArrayList<>(Arrays.asList(checksArr));
 
@@ -92,35 +98,6 @@ public class NoteListAdapter extends RecyclerView.Adapter<NoteListAdapter.NoteVi
             noteViewHolder.mTextViewContent.setText(note.getDescripcion());
         }
         noteViewHolder.mTextViewDate.setText(dateFormat.format(note.getFecha()));
-        setPriority(note.getPrioridad(), noteViewHolder);
-    }
-
-    /**
-     *
-     * setPriority: hace set del color de la prioridad en base a su id en una nota designada
-     *
-     * */
-    private void setPriority(int id, NoteViewHolder note) {
-        switch (id) {
-            case 1:
-                note.mTextViewPriority.getBackground().setColorFilter(
-                        ContextCompat.getColor(mContext, R.color.priority1),
-                        PorterDuff.Mode.SRC_ATOP
-                );
-                break;
-            case 2:
-                note.mTextViewPriority.getBackground().setColorFilter(
-                        ContextCompat.getColor(mContext, R.color.priority2),
-                        PorterDuff.Mode.SRC_ATOP
-                );
-                break;
-            case 3:
-                note.mTextViewPriority.getBackground().setColorFilter(
-                        ContextCompat.getColor(mContext, R.color.priority3),
-                        PorterDuff.Mode.SRC_ATOP
-                );
-                break;
-        }
     }
 
     @Override
@@ -165,7 +142,7 @@ public class NoteListAdapter extends RecyclerView.Adapter<NoteListAdapter.NoteVi
     class NoteViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener,
         View.OnLongClickListener {
 
-        TextView mTextViewTitle, mTextViewContent, mTextViewDate, mTextViewPriority, mTextViewFrame;
+        TextView mTextViewTitle, mTextViewContent, mTextViewDate, mTextViewFrame;
         LinearLayout mLinearLayout;
 
         NoteViewHolder(View itemView) {
@@ -177,7 +154,6 @@ public class NoteListAdapter extends RecyclerView.Adapter<NoteListAdapter.NoteVi
             mTextViewTitle = itemView.findViewById(R.id.tv_title_note);
             mTextViewContent = itemView.findViewById(R.id.tv_content_note);
             mTextViewDate = itemView.findViewById(R.id.tv_date_note);
-            mTextViewPriority = itemView.findViewById(R.id.tv_priority_note);
             mTextViewFrame = itemView.findViewById(R.id.tv_frame);
             mLinearLayout = itemView.findViewById(R.id.ll_linear_layout_main);
         }

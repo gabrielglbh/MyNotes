@@ -14,28 +14,28 @@ public class NoteEntity {
     private String titulo;
     private String descripcion;
     private String checkbox;
-    private int prioridad;
+    private int esChecklist;
     private Date fecha;
     private int archivada;
 
     @Ignore
-    public NoteEntity(String title, String description, String checkbox, int priority, Date lastUpdated, int archivada) {
+    public NoteEntity(String title, String description, String checkbox, Date lastUpdated, int archivada, int esChecklist) {
         setTitulo(title);
         setDescripcion(description);
         setCheckbox(checkbox);
-        setPrioridad(priority);
         setFecha(lastUpdated);
         setArchivada(archivada);
+        setEsChecklist(esChecklist);
     }
 
-    public NoteEntity(int id, String titulo, String descripcion, String checkbox, int prioridad, Date fecha, int archivada) {
+    public NoteEntity(int id, String titulo, String descripcion, String checkbox, Date fecha, int archivada, int esChecklist) {
         setId(id);
         setTitulo(titulo);
         setDescripcion(descripcion);
         setCheckbox(checkbox);
-        setPrioridad(prioridad);
         setFecha(fecha);
         setArchivada(archivada);
+        setEsChecklist(esChecklist);
     }
 
     public void setId(int id) { this.id = id; }
@@ -58,10 +58,6 @@ public class NoteEntity {
         return checkbox;
     }
 
-    private void setPrioridad(int priority) { this.prioridad = priority; }
-
-    public int getPrioridad() { return this.prioridad; }
-
     private void setFecha(Date lastUpdated) { this.fecha = lastUpdated; }
 
     public Date getFecha() { return this.fecha; }
@@ -69,4 +65,12 @@ public class NoteEntity {
     private void setArchivada(int archivada) { this.archivada = archivada; }
 
     public int getArchivada() { return this.archivada; }
+
+    public int getEsChecklist() {
+        return esChecklist;
+    }
+
+    private void setEsChecklist(int esChecklist) {
+        this.esChecklist = esChecklist;
+    }
 }

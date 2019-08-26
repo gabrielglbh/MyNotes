@@ -31,29 +31,14 @@
             android:textStyle="italic"
             android:textColor="@color/colorTextContent" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
+        <TextView
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <TextView
-                android:id="@+id/tv_priority_note"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginEnd="12dp"
-                android:layout_marginStart="15dp"
-                android:background="@drawable/circle_priority" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/tv_title_note"
-                android:textSize="17sp"
-                android:textStyle="bold"
-                android:textColor="@color/colorTextTitle" />
-
-        </LinearLayout>
+            android:id="@+id/tv_title_note"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            android:layout_marginStart="10dp"
+            android:textColor="@color/colorTextTitle" />
 
         <TextView
             android:layout_width="wrap_content"

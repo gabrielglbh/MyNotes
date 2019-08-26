@@ -19,14 +19,14 @@ public class DatabaseQueries {
      * createNoteToArchived: crear nota y guardar lo mismo pero en archivadas o no
      *
      * */
-    public static void createNote(NoteEntity note, int archived, Context ctx) {
+    public static void createNote(NoteEntity note, int archived, int esChecklist, Context ctx) {
         NoteEntity newNote = new NoteEntity(
                 note.getTitulo(),
                 note.getDescripcion(),
                 note.getCheckbox(),
-                note.getPrioridad(),
                 note.getFecha(),
-                archived
+                archived,
+                esChecklist
         );
         DatabaseQueries.insertQuery(newNote, ctx);
     }
@@ -84,7 +84,6 @@ public class DatabaseQueries {
     public static void loadNotes(Context ctx, String filter, String order, int archivada,
                           final NoteListAdapter adapter, final LifecycleOwner lf) {
         final String orderAsc = "ASC";
-        final String PRIORIDAD = "Prioridad";
         final String TITULO = "Título";
         final String FECHA = "Fecha";
 
@@ -94,16 +93,6 @@ public class DatabaseQueries {
                     final LiveData<List<NoteEntity>> notesTitle = NoteArtDatabase.getsInstance(ctx)
                             .noteDao().loadAllNotesTitleASC(archivada);
                     notesTitle.observe(lf, new Observer<List<NoteEntity>>() {
-                        @Override
-                        public void onChanged(List<NoteEntity> noteEntities) {
-                            adapter.setNotes(noteEntities);
-                        }
-                    });
-                    break;
-                case PRIORIDAD:
-                    final LiveData<List<NoteEntity>> notesPrior = NoteArtDatabase.getsInstance(ctx)
-                            .noteDao().loadAllNotesPriorityASC(archivada);
-                    notesPrior.observe(lf, new Observer<List<NoteEntity>>() {
                         @Override
                         public void onChanged(List<NoteEntity> noteEntities) {
                             adapter.setNotes(noteEntities);
@@ -127,16 +116,6 @@ public class DatabaseQueries {
                     final LiveData<List<NoteEntity>> notesTitle = NoteArtDatabase.getsInstance(ctx)
                             .noteDao().loadAllNotesTitleDESC(archivada);
                     notesTitle.observe(lf, new Observer<List<NoteEntity>>() {
-                        @Override
-                        public void onChanged(List<NoteEntity> noteEntities) {
-                            adapter.setNotes(noteEntities);
-                        }
-                    });
-                    break;
-                case PRIORIDAD:
-                    final LiveData<List<NoteEntity>> notesPrior = NoteArtDatabase.getsInstance(ctx)
-                            .noteDao().loadAllNotesPriorityDESC(archivada);
-                    notesPrior.observe(lf, new Observer<List<NoteEntity>>() {
                         @Override
                         public void onChanged(List<NoteEntity> noteEntities) {
                             adapter.setNotes(noteEntities);

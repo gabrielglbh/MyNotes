@@ -13,12 +13,6 @@ import java.util.List;
 @Dao
 public interface NoteDao {
 
-    @Query("SELECT * FROM notas WHERE archivada IS :archivada ORDER BY prioridad ASC")
-    LiveData<List<NoteEntity>> loadAllNotesPriorityASC(int archivada);
-
-    @Query("SELECT * FROM notas WHERE archivada IS :archivada ORDER BY prioridad DESC")
-    LiveData<List<NoteEntity>> loadAllNotesPriorityDESC(int archivada);
-
     @Query("SELECT * FROM notas WHERE archivada IS :archivada ORDER BY titulo ASC")
     LiveData<List<NoteEntity>> loadAllNotesTitleASC(int archivada);
 

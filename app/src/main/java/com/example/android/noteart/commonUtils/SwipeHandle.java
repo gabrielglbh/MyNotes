@@ -68,6 +68,7 @@ public class SwipeHandle extends ItemTouchHelper.SimpleCallback{
     public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(ctx);
         boolean isDeleteModeOn = preferences.getBoolean(ID_DELETEMODE_BUNDLE, true);
+        int esChecklist = 0;
 
         if (isDeleteModeOn) {
             adapter.notifyItemChanged(viewHolder.getAdapterPosition());
@@ -76,8 +77,10 @@ public class SwipeHandle extends ItemTouchHelper.SimpleCallback{
             int position = viewHolder.getAdapterPosition();
             final List<NoteEntity> notes = adapter.getNotes();
             final NoteEntity note = notes.get(position);
+
+            esChecklist = note.getEsChecklist();
             DatabaseQueries.deleteQuery(note, ctx);
-            DatabaseQueries.createNote(note, archived, ctx);
+            DatabaseQueries.createNote(note, archived, esChecklist, ctx);
             makeToast(msg, ctx);
         }
     }

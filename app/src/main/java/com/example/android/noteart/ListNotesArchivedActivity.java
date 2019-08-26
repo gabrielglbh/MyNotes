@@ -38,7 +38,7 @@ public class ListNotesArchivedActivity extends AppCompatActivity
 
     private String defaultFilter = "Fecha";
     private String defaultOrder = "DESC";
-    private int itemClicked = 0;
+    private int itemClicked = 0, totalCountSelected = 1;
     private ArrayList<NoteEntity> mNoteListSelected = new ArrayList<>();
     private ArrayList<LinearLayout> mTextViewListSelected = new ArrayList<>();
     private ArrayList<Integer> mNotesIdList = new ArrayList<>();
@@ -104,18 +104,14 @@ public class ListNotesArchivedActivity extends AppCompatActivity
      *
      * */
     private void setFiltersOfBundle() {
-        final String PRIORIDAD = "Prioridad";
         final String TITULO = "Título";
         final String FECHA = "Fecha";
         switch (defaultFilter) {
             case FECHA:
                 itemClicked = 0;
                 break;
-            case PRIORIDAD:
-                itemClicked = 1;
-                break;
             case TITULO:
-                itemClicked = 2;
+                itemClicked = 1;
                 break;
         }
         loadNotes();
@@ -199,9 +195,6 @@ public class ListNotesArchivedActivity extends AppCompatActivity
                                             case 1:
                                                 itemClicked = 1;
                                                 break;
-                                            case 2:
-                                                itemClicked = 2;
-                                                break;
                                         }
                                         defaultFilter = filterArray[filter];
                                         loadNotes();
@@ -228,6 +221,8 @@ public class ListNotesArchivedActivity extends AppCompatActivity
                 makeAlertDeleteMode();
                 break;
             case R.id.menu_deselect_all:
+                totalCountSelected = 1;
+                setTitle(getString(R.string.app_name));
                 isDeleteModeOpen = DeleteModeOperations.deleteModeShutdownNotes(this,
                         mTextViewListSelected, mMenu, mNoteListSelected, true);
                 CustomSharedPreferences.setSharedPreferencesDeleteMode(this, ID_DELETEMODE_BUNDLE, isDeleteModeOpen);
@@ -270,16 +265,22 @@ public class ListNotesArchivedActivity extends AppCompatActivity
         if (isDeleteModeOpen) {
             DeleteModeOperations.changeColorFrame(frame, this, R.color.selectedFrame);
             if (mNotesIdList.contains(id)) {
+                totalCountSelected--;
+                setTitle(Integer.toString(totalCountSelected));
                 DeleteModeOperations.removeNote(id, frame, note,
                         mNotesIdList, mTextViewListSelected, mNoteListSelected);
                 DeleteModeOperations.changeColorFrame(frame, this, R.color.colorPrimaryActionBar);
                 if (mNotesIdList.isEmpty()) {
+                    setTitle(getString(R.string.app_name));
+                    totalCountSelected = 1;
                     isDeleteModeOpen = DeleteModeOperations.deleteModeShutdownNotes(this,
                             mTextViewListSelected, mMenu, mNoteListSelected, true);
                     CustomSharedPreferences.setSharedPreferencesDeleteMode(this, ID_DELETEMODE_BUNDLE, isDeleteModeOpen);
                 }
             }
             else {
+                totalCountSelected++;
+                setTitle(Integer.toString(totalCountSelected));
                 mNoteListSelected.add(note);
                 mTextViewListSelected.add(frame);
                 mNotesIdList.add(id);
@@ -288,8 +289,8 @@ public class ListNotesArchivedActivity extends AppCompatActivity
             Intent createNote = new Intent(getApplicationContext(), CreateNoteActivity.class);
             createNote.putExtra(NOTE_ID, id);
             createNote.putExtra(UPDATE_NOTE, true);
-            if (!note.getCheckbox().contains("-")) createNote.putExtra(ID_CREATION_MODE, CREATION_MODE_1);
-            else createNote.putExtra(ID_CREATION_MODE, CREATION_MODE_2);
+            if (note.getEsChecklist() == 1) createNote.putExtra(ID_CREATION_MODE, CREATION_MODE_1);
+            else if (note.getEsChecklist() == 0) createNote.putExtra(ID_CREATION_MODE, CREATION_MODE_2);
             startActivity(createNote);
         }
     }
@@ -303,6 +304,7 @@ public class ListNotesArchivedActivity extends AppCompatActivity
     @Override
     public void onElementLongClicked(int id, NoteEntity note, LinearLayout frame) {
         isDeleteModeOpen = true;
+        setTitle(Integer.toString(totalCountSelected));
         CustomSharedPreferences.setSharedPreferencesDeleteMode(this, ID_DELETEMODE_BUNDLE, isDeleteModeOpen);
         DeleteModeOperations.changeColorFrame(frame, this, R.color.selectedFrame);
 
@@ -343,7 +345,7 @@ public class ListNotesArchivedActivity extends AppCompatActivity
     public void makeAlertDeleteMode() {
         final AlertDialog.Builder builder = new AlertDialog.Builder(this,
                 R.style.Theme_MaterialComponents_Light_Dialog_Alert)
-                .setTitle(R.string.delete_notes_question)
+                .setTitle("¿Quieres eliminar las " + totalCountSelected + " notas seleccionadas?")
                 .setMessage(R.string.message_delete)
                 .setNegativeButton("No", new DialogInterface.OnClickListener() {
                     @Override
@@ -367,6 +369,9 @@ public class ListNotesArchivedActivity extends AppCompatActivity
 
                         isDeleteModeOpen = false;
                         CustomSharedPreferences.setSharedPreferencesDeleteMode(getApplicationContext(), ID_DELETEMODE_BUNDLE, isDeleteModeOpen);
+
+                        totalCountSelected = 1;
+                        setTitle(getString(R.string.app_name));
 
                         altDelete.dismiss();
                         makeSnackBar();
