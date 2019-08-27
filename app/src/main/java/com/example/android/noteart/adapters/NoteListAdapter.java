@@ -28,7 +28,7 @@ public class NoteListAdapter extends RecyclerView.Adapter<NoteListAdapter.NoteVi
     private Context mContext;
     private List<NoteEntity> mNoteEntityList;
 
-    private final String DELIMITER = "#/@/#";
+    private final String DELIMITER = "#/@/#--";
 
     private static final String DATE_FORMAT = "dd/MM/yy";
     private SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT, Locale.getDefault());

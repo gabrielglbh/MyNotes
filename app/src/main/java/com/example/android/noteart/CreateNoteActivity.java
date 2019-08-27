@@ -2,9 +2,13 @@ package com.example.android.noteart;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.PorterDuff;
+import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
@@ -15,14 +19,21 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
+import android.text.Html;
 import android.text.Layout;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.text.style.StyleSpan;
 import android.text.util.Linkify;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -41,11 +52,13 @@ import java.util.Date;
 public class CreateNoteActivity extends AppCompatActivity {
 
     private EditText mEditTextTitle, mEditTextDescription;
-    private TextView mToolbarCreationMode;
+    private TextView mToolbarCreationMode, mTextViewBold, mTextViewItalics;
     private LinearLayout sc;
     private NoteEntity mNote;
     private Toast mToast;
     private Menu mMenu;
+    private RecyclerView mRecyclerView;
+    private CreateCheckListAdapter mAdpater;
 
     private final String NOTE_ID = "id_nota";
     private final String UPDATE_NOTE = "update_nota";
@@ -55,9 +68,9 @@ public class CreateNoteActivity extends AppCompatActivity {
     private final String CREATION_MODE_1 = "nota";
     private final String CREATION_MODE_2 = "checklist";
 
-    private final String DELIMITER = "#/@/#";
+    private final String DELIMITER = "#/@/#--";
 
-    private boolean archivedPressed;
+    private boolean archivedPressed, italicsPressed = false, boldPressed = false;
     private boolean isOnDelete = false;
     private String titleOnDelete, descriptionOnDelete, checksOnDelete;
     private String isOnCreationMode;
@@ -65,9 +78,6 @@ public class CreateNoteActivity extends AppCompatActivity {
 
     private ArrayList<String> editTextListCheckBox = new ArrayList<>();
     private ArrayList<Boolean> isCheckedListCheckBox = new ArrayList<>();
-    private ArrayList<Boolean> ct = new ArrayList<>();
-    private RecyclerView mRecyclerView;
-    private CreateCheckListAdapter mAdpater;
 
     /**
      *
@@ -89,6 +99,8 @@ public class CreateNoteActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_create_note);
+
         Intent intent = getIntent();
         if (intent.hasExtra(ID_CREATION_MODE)) {
             if (intent.getStringExtra(ID_CREATION_MODE).equals(CREATION_MODE_1)) { // NOTA
@@ -100,40 +112,22 @@ public class CreateNoteActivity extends AppCompatActivity {
             }
         }
 
-        setContentView(R.layout.activity_create_note);
-
         mEditTextTitle = findViewById(R.id.et_edit_note_title);
         mEditTextDescription = findViewById(R.id.et_edit_note_description);
+
+        setTextWatcherStyle();
+
         mRecyclerView = findViewById(R.id.rv_main_checklist);
         mToolbarCreationMode = findViewById(R.id.toolbar_creation_mode);
+        mTextViewBold = findViewById(R.id.toolbar_bold);
+        mTextViewItalics = findViewById(R.id.toolbar_italic);
         sc = findViewById(R.id.scroll_view);
 
         setLinksEditText();
         getSharedPreferences();
+        setViews(intent);
 
         archivedPressed = false;
-
-        if (isOnCreationMode.equals(CREATION_MODE_1)) { // NOTA
-            mToolbarCreationMode.setBackground(getDrawable(R.drawable.ic_check_box));
-            mRecyclerView.setVisibility(View.GONE);
-            if (intent.hasExtra(UPDATE_NOTE)) {
-                loadQuery(intent);
-            } else {
-                mEditTextDescription.requestFocus();
-            }
-        } else if(isOnCreationMode.equals(CREATION_MODE_2)) {  // CHECKLIST
-            mToolbarCreationMode.setBackground(getDrawable(R.drawable.ic_note));
-            mEditTextDescription.setVisibility(View.GONE);
-            if (intent.hasExtra(UPDATE_NOTE)) {
-                setRecyclerView(editTextListCheckBox, isCheckedListCheckBox, true);
-                loadQuery(intent);
-            } else {
-                setRecyclerView(editTextListCheckBox, isCheckedListCheckBox, false);
-                editTextListCheckBox.add("");
-                isCheckedListCheckBox.add(false);
-                mAdpater.setBinds(editTextListCheckBox, isCheckedListCheckBox);
-            }
-        }
     }
 
     @Override
@@ -169,6 +163,93 @@ public class CreateNoteActivity extends AppCompatActivity {
      *                               METODOS SET PARA ON CREATE                                  *
      *                                                                                           *
      *********************************************************************************************/
+
+    /**
+     *
+     * setTextWatcherStyle: set del TextWatcher para el cambio de estilo del texto
+     *
+     * */
+    private void setTextWatcherStyle() {
+        mEditTextDescription.addTextChangedListener(new TextWatcher() {
+            final int flag = Spannable.SPAN_EXCLUSIVE_EXCLUSIVE;
+
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int start, int end, int count) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int start, int end, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                String string = editable.toString();
+                String[] st = string.split("\\s");
+
+                int startIndex = 0;
+                for(int i = 0; i < st.length; i++){
+                    String s = st[i];
+                    int index = string.indexOf(s, startIndex);
+
+                    if (italicsPressed && boldPressed) {
+                        editable.setSpan(new StyleSpan(Typeface.BOLD_ITALIC),
+                                index,
+                                index + s.length(),
+                                flag);
+                    } else if (!italicsPressed && boldPressed) {
+                        editable.setSpan(new StyleSpan(Typeface.BOLD),
+                                index,
+                                index + s.length(),
+                                flag);
+                    } else if (italicsPressed && !boldPressed) {
+                        editable.setSpan(new StyleSpan(Typeface.ITALIC),
+                                index,
+                                index + s.length(),
+                                flag);
+                    } else {
+                        editable.setSpan(new StyleSpan(Typeface.NORMAL),
+                                index,
+                                index + s.length(),
+                                flag);
+                    }
+                    startIndex = index + s.length();
+                }
+            }
+        });
+    }
+
+    /**
+     *
+     * setViews: Se hace set de los recycler view o de las notas al empezar la actividad
+     *
+     * */
+    private void setViews(Intent intent) {
+        if (isOnCreationMode.equals(CREATION_MODE_1)) { // NOTA
+            mToolbarCreationMode.setBackground(getDrawable(R.drawable.ic_check_box));
+            mRecyclerView.setVisibility(View.GONE);
+            if (intent.hasExtra(UPDATE_NOTE)) {
+                loadQuery(intent);
+            } else {
+                mEditTextDescription.requestFocus();
+            }
+        } else if(isOnCreationMode.equals(CREATION_MODE_2)) {  // CHECKLIST
+            mToolbarCreationMode.setBackground(getDrawable(R.drawable.ic_note));
+            mEditTextDescription.setVisibility(View.GONE);
+            mTextViewItalics.setVisibility(View.GONE);
+            mTextViewBold.setVisibility(View.GONE);
+            if (intent.hasExtra(UPDATE_NOTE)) {
+                setRecyclerView(editTextListCheckBox, isCheckedListCheckBox, true);
+                loadQuery(intent);
+            } else {
+                setRecyclerView(editTextListCheckBox, isCheckedListCheckBox, false);
+                editTextListCheckBox.add("");
+                isCheckedListCheckBox.add(false);
+                mAdpater.setBinds(editTextListCheckBox, isCheckedListCheckBox);
+            }
+        }
+    }
 
     /**
      *
@@ -460,6 +541,86 @@ public class CreateNoteActivity extends AppCompatActivity {
 
     /**
      *
+     * textInItalic: método para poner en activo el modo escritura en cursiva
+     *
+     * */
+    public void textInItalic(View view) {
+        if (!italicsPressed) {
+            mTextViewItalics.setTextColor(ContextCompat.getColor(this, R.color.colorPrimary));
+            mTextViewItalics.getBackground().setColorFilter(ContextCompat
+                    .getColor(this, R.color.colorPrimaryActionBar), PorterDuff.Mode.SRC_IN);
+            italicsPressed = true;
+        } else {
+            mTextViewItalics.setTextColor(ContextCompat.getColor(this, R.color.colorPrimaryActionBar));
+            mTextViewItalics.getBackground().setColorFilter(ContextCompat
+                    .getColor(this, R.color.colorPrimary), PorterDuff.Mode.SRC_IN);
+            italicsPressed = false;
+        }
+    }
+
+    /**
+     *
+     * textInBold: método para poner en activo el modo escritura en negrita
+     *
+     * */
+    public void textInBold(View view) {
+        if (!boldPressed) {
+            mTextViewBold.setTextColor(ContextCompat.getColor(this, R.color.colorPrimary));
+            mTextViewBold.getBackground().setColorFilter(ContextCompat
+                    .getColor(this, R.color.colorPrimaryActionBar), PorterDuff.Mode.SRC_IN);
+            boldPressed = true;
+        } else {
+            mTextViewBold.setTextColor(ContextCompat.getColor(this, R.color.colorPrimaryActionBar));
+            mTextViewBold.getBackground().setColorFilter(ContextCompat
+                    .getColor(this, R.color.colorPrimary), PorterDuff.Mode.SRC_IN);
+            boldPressed = false;
+        }
+    }
+
+    /**
+     *
+     * dispatchTouchEvent y onBackPressed: Ayuda que al darle atrás de la checklist,
+     * se pierda el focus de los editText y, en consecuencia, se pueda guardar el texto correctamente
+     *
+     * Solo está activo en el modo de checklists
+     *
+     * */
+    @Override
+    public void onBackPressed() {
+        if (isOnCreationMode.equals(CREATION_MODE_2)) {
+            View v = getCurrentFocus();
+            if (v instanceof EditText) {
+                Rect outRect = new Rect();
+                v.getGlobalVisibleRect(outRect);
+                v.clearFocus();
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+            }
+        }
+        super.onBackPressed();
+    }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent event) {
+        if (isOnCreationMode.equals(CREATION_MODE_2)) {
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                View v = getCurrentFocus();
+                if (v instanceof EditText) {
+                    Rect outRect = new Rect();
+                    v.getGlobalVisibleRect(outRect);
+                    if (!outRect.contains((int) event.getRawX(), (int) event.getRawY())) {
+                        v.clearFocus();
+                        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                        imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                    }
+                }
+            }
+        }
+        return super.dispatchTouchEvent(event);
+    }
+
+    /**
+     *
      * transformDescriptionAndCheckbox: transforma el String a un ArrayList<> y hace set
      * de las listas en el adapter
      *
@@ -518,6 +679,8 @@ public class CreateNoteActivity extends AppCompatActivity {
                 }
             }
             mRecyclerView.setVisibility(View.VISIBLE);
+            mTextViewItalics.setVisibility(View.GONE);
+            mTextViewBold.setVisibility(View.GONE);
             mEditTextDescription.setVisibility(View.GONE);
 
             setRecyclerView(texts, checks, false);
@@ -529,10 +692,11 @@ public class CreateNoteActivity extends AppCompatActivity {
             mToolbarCreationMode.setBackground(getDrawable(R.drawable.ic_check_box));
 
             ArrayList<String> et = mAdpater.getTextList();
-            ct = mAdpater.getCheckedList();
             String textParsed = TextUtils.join("\n", et);
 
             mRecyclerView.setVisibility(View.GONE);
+            mTextViewItalics.setVisibility(View.VISIBLE);
+            mTextViewBold.setVisibility(View.VISIBLE);
             mEditTextDescription.setVisibility(View.VISIBLE);
             mEditTextDescription.requestFocus();
             mEditTextDescription.setText(textParsed);

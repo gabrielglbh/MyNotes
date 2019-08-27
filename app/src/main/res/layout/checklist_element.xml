@@ -4,6 +4,8 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:id="@+id/linear_layout_checkbox"
+    android:focusableInTouchMode="true"
+    android:focusable="true"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <CheckBox

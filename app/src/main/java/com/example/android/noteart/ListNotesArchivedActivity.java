@@ -222,7 +222,7 @@ public class ListNotesArchivedActivity extends AppCompatActivity
                 break;
             case R.id.menu_deselect_all:
                 totalCountSelected = 1;
-                setTitle(getString(R.string.app_name));
+                setTitle(getString(R.string.archived_notes));
                 isDeleteModeOpen = DeleteModeOperations.deleteModeShutdownNotes(this,
                         mTextViewListSelected, mMenu, mNoteListSelected, true);
                 CustomSharedPreferences.setSharedPreferencesDeleteMode(this, ID_DELETEMODE_BUNDLE, isDeleteModeOpen);
@@ -271,7 +271,7 @@ public class ListNotesArchivedActivity extends AppCompatActivity
                         mNotesIdList, mTextViewListSelected, mNoteListSelected);
                 DeleteModeOperations.changeColorFrame(frame, this, R.color.colorPrimaryActionBar);
                 if (mNotesIdList.isEmpty()) {
-                    setTitle(getString(R.string.app_name));
+                    setTitle(getString(R.string.archived_notes));
                     totalCountSelected = 1;
                     isDeleteModeOpen = DeleteModeOperations.deleteModeShutdownNotes(this,
                             mTextViewListSelected, mMenu, mNoteListSelected, true);
@@ -371,7 +371,7 @@ public class ListNotesArchivedActivity extends AppCompatActivity
                         CustomSharedPreferences.setSharedPreferencesDeleteMode(getApplicationContext(), ID_DELETEMODE_BUNDLE, isDeleteModeOpen);
 
                         totalCountSelected = 1;
-                        setTitle(getString(R.string.app_name));
+                        setTitle(getString(R.string.archived_notes));
 
                         altDelete.dismiss();
                         makeSnackBar();

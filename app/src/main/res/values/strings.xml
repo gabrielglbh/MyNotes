@@ -10,13 +10,11 @@
     <string name="checklists_menu">Checklists</string>
 
     <string name="titulo">Título</string>
-    <string name="prioridad">Prioridad</string>
     <string name="fecha">Fecha</string>
 
     <string name="toma_una_nota">Escribe una nota…</string>
 
     <string name="edit_titulo">Título…</string>
-    <string name="priority_note">Prioridad</string>
 
     <string name="prioridad_alta">Alta</string>
     <string name="prioridad_media">Media</string>
@@ -37,8 +35,4 @@
     <string name="deselect_all">Deshacer selección</string>
     <string name="message_delete">Las notas se eliminarán permanentemente.</string>
     <string name="eliminar_nota">Eliminar nota</string>
-
-    <string name="cambiar_prioridad_toolbar_alta">Cambiar Prioridad: ALTA</string>
-    <string name="cambiar_prioridad_toolbar_media">Cambiar Prioridad: MEDIA</string>
-    <string name="cambiar_prioridad_toolbar_baja">Cambiar Prioridad: BAJA</string>
 </resources>

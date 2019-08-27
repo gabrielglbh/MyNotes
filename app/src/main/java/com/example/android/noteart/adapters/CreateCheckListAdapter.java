@@ -6,7 +6,11 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.InputType;
+import android.text.SpannableString;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
 import android.text.TextWatcher;
+import android.text.style.StrikethroughSpan;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -60,30 +64,36 @@ public class CreateCheckListAdapter extends RecyclerView.Adapter<CreateCheckList
         final int position = checkElemViewHolder.getAdapterPosition();
         final CheckBox checkBox = checkElemViewHolder.checkBox;
 
-        if (checkedList.get(position)) {
-            setCheckTrue(button, edit);
-        } else {
-            setCheckFalse(button, edit);
-        }
+        if (checkedList.get(position)) { setCheckTrue(button, edit); }
+        else { setCheckFalse(button, edit); }
 
         checkBox.setChecked(checkedList.get(position));
         edit.setText(textList.get(position));
         edit.setImeOptions(EditorInfo.IME_ACTION_DONE);
         edit.setRawInputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
 
-        if (position == textList.size() - 1 && !mode) {
-            edit.requestFocus();
+        // Manejo del focus
+        if (textList.contains("") && !mode) {
+            if (position == textList.indexOf("")) edit.requestFocus();
         }
 
+        // Cambio de modo para que al editar, los edit text sigan teniendo focus
         edit.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View view, boolean b) {
                 if (b) {
                     mode = false;
+                } else {
+                    final String text = edit.getText().toString();
+                    if (position <= textList.size() - 1) {
+                        textList.set(position, text);
+                        checkedList.set(position, checkBox.isChecked());
+                    }
                 }
             }
         });
 
+        // Se guarda el texto del edit text y se inserta un nuevo elemento cuando se pulsa el botón
         edit.setOnEditorActionListener(new EditText.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
@@ -105,6 +115,7 @@ public class CreateCheckListAdapter extends RecyclerView.Adapter<CreateCheckList
             }
         });
 
+        // Eliminación de un elemento de la checklist
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -117,6 +128,7 @@ public class CreateCheckListAdapter extends RecyclerView.Adapter<CreateCheckList
             }
         });
 
+        // Manejo de las checks
         checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
