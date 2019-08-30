@@ -72,6 +72,13 @@ public class CreateCheckListAdapter extends RecyclerView.Adapter<CreateCheckList
         edit.setImeOptions(EditorInfo.IME_ACTION_DONE);
         edit.setRawInputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
 
+        // Manejo de aparicion de los botones del elemento
+        if (!edit.hasFocus()) {
+            button.setVisibility(View.GONE);
+        } else {
+            button.setVisibility(View.VISIBLE);
+        }
+
         // Manejo del focus
         if (textList.contains("") && !mode) {
             if (position == textList.indexOf("")) edit.requestFocus();
@@ -83,7 +90,9 @@ public class CreateCheckListAdapter extends RecyclerView.Adapter<CreateCheckList
             public void onFocusChange(View view, boolean b) {
                 if (b) {
                     mode = false;
+                    button.setVisibility(View.VISIBLE);
                 } else {
+                    button.setVisibility(View.GONE);
                     final String text = edit.getText().toString();
                     if (position <= textList.size() - 1) {
                         textList.set(position, text);
@@ -103,6 +112,7 @@ public class CreateCheckListAdapter extends RecyclerView.Adapter<CreateCheckList
                     if (position <= textList.size() - 1) {
                         textList.set(position, text);
                         checkedList.set(position, checkBox.isChecked());
+                        button.setVisibility(View.GONE);
                     }
 
                     textList.add(position + 1, "");
@@ -123,7 +133,7 @@ public class CreateCheckListAdapter extends RecyclerView.Adapter<CreateCheckList
                     textList.remove(position);
                     checkedList.remove(position);
                     notifyItemRemoved(position);
-                    notifyItemRangeChanged(0, textList.size());
+                    notifyItemRangeChanged(position, textList.size() - position);
                 }
             }
         });
@@ -132,16 +142,29 @@ public class CreateCheckListAdapter extends RecyclerView.Adapter<CreateCheckList
         checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                if (b) {
+                if (compoundButton.isPressed()) {
+                    if (b) {
+                        setCheckTrue(button, edit);
+                    } else {
+                        setCheckFalse(button, edit);
+                    }
                     checkedList.set(position, b);
-                    setCheckTrue(button, edit);
-                }
-                else {
-                    checkedList.set(position, b);
-                    setCheckFalse(button, edit);
                 }
             }
         });
+    }
+
+    @Override
+    public int getItemCount() {
+        if (textList == null) return 0;
+        else return textList.size();
+    }
+
+    public void addNewElementOnButton() {
+        textList.add(textList.size(), "");
+        checkedList.add(checkedList.size(), false);
+        notifyItemInserted(textList.size() + 1);
+        notifyItemRangeChanged(0, textList.size());
     }
 
     public void setBinds(ArrayList<String> editTextList, ArrayList<Boolean> isCheckedList) {
@@ -156,12 +179,6 @@ public class CreateCheckListAdapter extends RecyclerView.Adapter<CreateCheckList
 
     public ArrayList<Boolean> getCheckedList() {
         return checkedList;
-    }
-
-    @Override
-    public int getItemCount() {
-        if (textList == null) return 0;
-        else return textList.size();
     }
 
     private void setCheckTrue(TextView button, EditText edit) {

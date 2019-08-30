@@ -7,6 +7,8 @@
     <ScrollView
         android:layout_height="match_parent"
         android:layout_width="match_parent"
+        android:layout_marginBottom="45dp"
+        android:id="@+id/scroll_view"
         xmlns:android="http://schemas.android.com/apk/res/android">
 
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -16,7 +18,8 @@
             android:padding="16dp"
             android:orientation="vertical"
             tools:context=".CreateNoteActivity"
-            android:id="@+id/scroll_view"
+            android:id="@+id/linear_main"
+            android:layout_marginBottom="45dp"
             android:focusableInTouchMode="true"
             android:focusable="true">
 
@@ -40,8 +43,7 @@
                 android:layout_marginTop="20dp"
                 android:id="@+id/rv_main_checklist"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginBottom="45dp"/>
+                android:layout_height="match_parent"/>
 
             <EditText
                 android:layout_width="match_parent"
@@ -55,9 +57,7 @@
                 android:id="@+id/et_edit_note_description"
                 android:layout_marginTop="20dp"
                 android:gravity="top|start"
-                android:inputType="textCapSentences|textMultiLine"
-                android:layout_marginBottom="45dp"/>
-
+                android:inputType="textCapSentences|textMultiLine"/>
         </LinearLayout>
     </ScrollView>
 
@@ -65,6 +65,7 @@
         android:layout_width="match_parent"
         android:layout_height="45dp"
         android:layout_gravity="bottom"
+        android:id="@+id/toolbar_create_note"
         android:background="@color/colorPrimary">
 
         <LinearLayout
@@ -73,39 +74,19 @@
             android:orientation="horizontal">
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="30sp"
-                android:layout_gravity="center"
-                android:onClick="textInBold"
-                android:text="N"
-                android:textSize="20sp"
-                android:gravity="center"
-                android:background="@drawable/circle"
-                android:textColor="@color/colorPrimaryActionBar"
-                android:textStyle="bold"
-                android:id="@+id/toolbar_bold"
-                android:layout_marginStart="10dp"
-                android:layout_marginEnd="10dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="30sp"
-                android:layout_gravity="center"
-                android:onClick="textInItalic"
-                android:text="C"
-                android:textSize="20sp"
-                android:gravity="center"
-                android:background="@drawable/circle"
-                android:textColor="@color/colorPrimaryActionBar"
-                android:textStyle="italic"
-                android:id="@+id/toolbar_italic"
-                android:layout_marginEnd="30dp" />
-
-            <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:textSize="15sp"
                 android:layout_weight="100"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:onClick="addElemToChecklist"
+                android:id="@+id/toolbar_add_elem"
+                android:background="@drawable/ic_add_menu"
+                android:layout_marginEnd="30dp" />
 
             <TextView
                 android:layout_width="wrap_content"

@@ -11,10 +11,10 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".ListMainActivity"
-            android:launchMode="singleTop">
+            android:launchMode="singleTop"
+            android:configChanges="orientation|screenSize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -22,7 +22,7 @@
             android:name=".CreateNoteActivity"
             android:label=""
             android:parentActivityName=".ListMainActivity"
-            android:windowSoftInputMode="adjustResize"/>
+            android:windowSoftInputMode="stateUnchanged|adjustResize"/>
         <activity
             android:name=".ListNotesArchivedActivity"
             android:label="@string/archived_notes"

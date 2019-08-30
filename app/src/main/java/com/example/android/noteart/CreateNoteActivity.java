@@ -3,30 +3,22 @@ package com.example.android.noteart;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.PorterDuff;
 import android.graphics.Rect;
-import android.graphics.Typeface;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.Html;
-import android.text.Layout;
-import android.text.Spannable;
-import android.text.SpannableString;
-import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.TextWatcher;
-import android.text.style.StyleSpan;
 import android.text.util.Linkify;
 import android.util.Log;
 import android.view.Menu;
@@ -36,6 +28,7 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -52,8 +45,10 @@ import java.util.Date;
 public class CreateNoteActivity extends AppCompatActivity {
 
     private EditText mEditTextTitle, mEditTextDescription;
-    private TextView mToolbarCreationMode, mTextViewBold, mTextViewItalics;
-    private LinearLayout sc;
+    private TextView mToolbarCreationMode, mTextViewAddElem;
+    private LinearLayout ll;
+    private ScrollView sc;
+    private android.support.v7.widget.Toolbar tb;
     private NoteEntity mNote;
     private Toast mToast;
     private Menu mMenu;
@@ -70,7 +65,7 @@ public class CreateNoteActivity extends AppCompatActivity {
 
     private final String DELIMITER = "#/@/#--";
 
-    private boolean archivedPressed, italicsPressed = false, boldPressed = false;
+    private boolean archivedPressed = false;
     private boolean isOnDelete = false;
     private String titleOnDelete, descriptionOnDelete, checksOnDelete;
     private String isOnCreationMode;
@@ -101,33 +96,31 @@ public class CreateNoteActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_note);
 
+        mEditTextTitle = findViewById(R.id.et_edit_note_title);
+        mEditTextDescription = findViewById(R.id.et_edit_note_description);
+        mRecyclerView = findViewById(R.id.rv_main_checklist);
+        mToolbarCreationMode = findViewById(R.id.toolbar_creation_mode);
+        mTextViewAddElem = findViewById(R.id.toolbar_add_elem);
+        tb = findViewById(R.id.toolbar_create_note);
+        ll = findViewById(R.id.linear_main);
+        sc = findViewById(R.id.scroll_view);
+
         Intent intent = getIntent();
         if (intent.hasExtra(ID_CREATION_MODE)) {
             if (intent.getStringExtra(ID_CREATION_MODE).equals(CREATION_MODE_1)) { // NOTA
                 isOnCreationMode = CREATION_MODE_1;
+                setScrollViewParams(true, 45);
                 esChecklist = 1;
             } else if (intent.getStringExtra(ID_CREATION_MODE).equals(CREATION_MODE_2)) { // CHECKLIST
                 isOnCreationMode = CREATION_MODE_2;
+                setScrollViewParams(false, 10);
                 esChecklist = 0;
             }
         }
 
-        mEditTextTitle = findViewById(R.id.et_edit_note_title);
-        mEditTextDescription = findViewById(R.id.et_edit_note_description);
-
-        setTextWatcherStyle();
-
-        mRecyclerView = findViewById(R.id.rv_main_checklist);
-        mToolbarCreationMode = findViewById(R.id.toolbar_creation_mode);
-        mTextViewBold = findViewById(R.id.toolbar_bold);
-        mTextViewItalics = findViewById(R.id.toolbar_italic);
-        sc = findViewById(R.id.scroll_view);
-
         setLinksEditText();
         getSharedPreferences();
         setViews(intent);
-
-        archivedPressed = false;
     }
 
     @Override
@@ -166,58 +159,16 @@ public class CreateNoteActivity extends AppCompatActivity {
 
     /**
      *
-     * setTextWatcherStyle: set del TextWatcher para el cambio de estilo del texto
+     * setScrollViewParams: set de los distintos parámetros de la scrollview para hacer smooth
+     * transitions
      *
      * */
-    private void setTextWatcherStyle() {
-        mEditTextDescription.addTextChangedListener(new TextWatcher() {
-            final int flag = Spannable.SPAN_EXCLUSIVE_EXCLUSIVE;
-
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int start, int end, int count) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int start, int end, int count) {
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-                String string = editable.toString();
-                String[] st = string.split("\\s");
-
-                int startIndex = 0;
-                for(int i = 0; i < st.length; i++){
-                    String s = st[i];
-                    int index = string.indexOf(s, startIndex);
-
-                    if (italicsPressed && boldPressed) {
-                        editable.setSpan(new StyleSpan(Typeface.BOLD_ITALIC),
-                                index,
-                                index + s.length(),
-                                flag);
-                    } else if (!italicsPressed && boldPressed) {
-                        editable.setSpan(new StyleSpan(Typeface.BOLD),
-                                index,
-                                index + s.length(),
-                                flag);
-                    } else if (italicsPressed && !boldPressed) {
-                        editable.setSpan(new StyleSpan(Typeface.ITALIC),
-                                index,
-                                index + s.length(),
-                                flag);
-                    } else {
-                        editable.setSpan(new StyleSpan(Typeface.NORMAL),
-                                index,
-                                index + s.length(),
-                                flag);
-                    }
-                    startIndex = index + s.length();
-                }
-            }
-        });
+    private void setScrollViewParams(final boolean isSet, int margin) {
+        ScrollView.LayoutParams layoutParams = new ScrollView.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
+        layoutParams.setMargins(0, 0, 0, margin);
+        ll.setLayoutParams(layoutParams);
+        sc.setEnabled(isSet);
     }
 
     /**
@@ -229,6 +180,7 @@ public class CreateNoteActivity extends AppCompatActivity {
         if (isOnCreationMode.equals(CREATION_MODE_1)) { // NOTA
             mToolbarCreationMode.setBackground(getDrawable(R.drawable.ic_check_box));
             mRecyclerView.setVisibility(View.GONE);
+            mTextViewAddElem.setVisibility(View.GONE);
             if (intent.hasExtra(UPDATE_NOTE)) {
                 loadQuery(intent);
             } else {
@@ -237,8 +189,6 @@ public class CreateNoteActivity extends AppCompatActivity {
         } else if(isOnCreationMode.equals(CREATION_MODE_2)) {  // CHECKLIST
             mToolbarCreationMode.setBackground(getDrawable(R.drawable.ic_note));
             mEditTextDescription.setVisibility(View.GONE);
-            mTextViewItalics.setVisibility(View.GONE);
-            mTextViewBold.setVisibility(View.GONE);
             if (intent.hasExtra(UPDATE_NOTE)) {
                 setRecyclerView(editTextListCheckBox, isCheckedListCheckBox, true);
                 loadQuery(intent);
@@ -310,7 +260,6 @@ public class CreateNoteActivity extends AppCompatActivity {
                 String areChecked = res[1];
 
                 if (intent.hasExtra(UPDATE_NOTE)) {
-
                     if (description.equals(mNote.getDescripcion())
                             && areChecked.equals(mNote.getCheckbox())
                             && mEditTextTitle.getText().toString().equals(mNote.getTitulo())
@@ -443,7 +392,7 @@ public class CreateNoteActivity extends AppCompatActivity {
         Intent intent = getIntent();
         switch (item.getItemId()) {
             case android.R.id.home:
-                finish();
+                onBackPressed();
                 break;
             case R.id.menu_archive_note:
                 if (archivedPressed) {
@@ -529,6 +478,13 @@ public class CreateNoteActivity extends AppCompatActivity {
         ArrayList<String> et = mAdpater.getTextList();
         ArrayList<Boolean> ck = mAdpater.getCheckedList();
 
+        for (int x = 0; x < et.size(); x++) {
+            if (et.get(x).trim().isEmpty()) {
+                et.remove(x);
+                ck.remove(x);
+            }
+        }
+
         String[] res = {TextUtils.join(DELIMITER, et), TextUtils.join(DELIMITER, ck)};
         return res;
     }
@@ -538,44 +494,6 @@ public class CreateNoteActivity extends AppCompatActivity {
      *                                  METODOS DE FUNCIONALIDAD                                 *
      *                                                                                           *
      *********************************************************************************************/
-
-    /**
-     *
-     * textInItalic: método para poner en activo el modo escritura en cursiva
-     *
-     * */
-    public void textInItalic(View view) {
-        if (!italicsPressed) {
-            mTextViewItalics.setTextColor(ContextCompat.getColor(this, R.color.colorPrimary));
-            mTextViewItalics.getBackground().setColorFilter(ContextCompat
-                    .getColor(this, R.color.colorPrimaryActionBar), PorterDuff.Mode.SRC_IN);
-            italicsPressed = true;
-        } else {
-            mTextViewItalics.setTextColor(ContextCompat.getColor(this, R.color.colorPrimaryActionBar));
-            mTextViewItalics.getBackground().setColorFilter(ContextCompat
-                    .getColor(this, R.color.colorPrimary), PorterDuff.Mode.SRC_IN);
-            italicsPressed = false;
-        }
-    }
-
-    /**
-     *
-     * textInBold: método para poner en activo el modo escritura en negrita
-     *
-     * */
-    public void textInBold(View view) {
-        if (!boldPressed) {
-            mTextViewBold.setTextColor(ContextCompat.getColor(this, R.color.colorPrimary));
-            mTextViewBold.getBackground().setColorFilter(ContextCompat
-                    .getColor(this, R.color.colorPrimaryActionBar), PorterDuff.Mode.SRC_IN);
-            boldPressed = true;
-        } else {
-            mTextViewBold.setTextColor(ContextCompat.getColor(this, R.color.colorPrimaryActionBar));
-            mTextViewBold.getBackground().setColorFilter(ContextCompat
-                    .getColor(this, R.color.colorPrimary), PorterDuff.Mode.SRC_IN);
-            boldPressed = false;
-        }
-    }
 
     /**
      *
@@ -600,9 +518,10 @@ public class CreateNoteActivity extends AppCompatActivity {
         super.onBackPressed();
     }
 
+    /*
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
-        if (isOnCreationMode.equals(CREATION_MODE_2)) {
+        if (isOnCreationMode.equals(CREATION_MODE_2) && !isAddElementPressed) {
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 View v = getCurrentFocus();
                 if (v instanceof EditText) {
@@ -615,9 +534,11 @@ public class CreateNoteActivity extends AppCompatActivity {
                     }
                 }
             }
+            isAddElementPressed = false;
         }
         return super.dispatchTouchEvent(event);
     }
+    */
 
     /**
      *
@@ -660,6 +581,7 @@ public class CreateNoteActivity extends AppCompatActivity {
     public void changeCreationMode(View view) {
         if (isOnCreationMode.equals(CREATION_MODE_1)) {
             isOnCreationMode = CREATION_MODE_2;
+            esChecklist = 0;
             mToolbarCreationMode.setBackground(getDrawable(R.drawable.ic_note));
 
             String[] textsEachLine = mEditTextDescription.getText().toString().split("\n");
@@ -679,13 +601,11 @@ public class CreateNoteActivity extends AppCompatActivity {
                 }
             }
             mRecyclerView.setVisibility(View.VISIBLE);
-            mTextViewItalics.setVisibility(View.GONE);
-            mTextViewBold.setVisibility(View.GONE);
+            mTextViewAddElem.setVisibility(View.VISIBLE);
             mEditTextDescription.setVisibility(View.GONE);
+            setScrollViewParams(false, 10);
 
             setRecyclerView(texts, checks, false);
-
-            esChecklist = 0;
         } else if (isOnCreationMode.equals(CREATION_MODE_2)) {
             isOnCreationMode = CREATION_MODE_1;
             esChecklist = 1;
@@ -695,12 +615,27 @@ public class CreateNoteActivity extends AppCompatActivity {
             String textParsed = TextUtils.join("\n", et);
 
             mRecyclerView.setVisibility(View.GONE);
-            mTextViewItalics.setVisibility(View.VISIBLE);
-            mTextViewBold.setVisibility(View.VISIBLE);
+            mTextViewAddElem.setVisibility(View.GONE);
             mEditTextDescription.setVisibility(View.VISIBLE);
             mEditTextDescription.requestFocus();
             mEditTextDescription.setText(textParsed);
             mEditTextDescription.setSelection(mEditTextDescription.getText().length());
+
+            setScrollViewParams(true, 45);
+        }
+    }
+
+    /**
+     *
+     * addElemToChecklist: Por si el usuario quiere añadir un elemento
+     *
+     * */
+    public void addElemToChecklist(View view) {
+        ArrayList<Boolean> checks = mAdpater.getCheckedList();
+        if (!checks.contains(false)) {
+            mAdpater.addNewElementOnButton();
+        } else {
+            makeToast("Todavía tienes tareas sin hacer");
         }
     }
 
@@ -740,7 +675,7 @@ public class CreateNoteActivity extends AppCompatActivity {
      *
      * */
     private void makeSnackBar(String msg) {
-        final Snackbar snackbar = Snackbar.make(sc, msg, Snackbar.LENGTH_LONG);
+        final Snackbar snackbar = Snackbar.make(ll, msg, Snackbar.LENGTH_LONG);
         snackbar.setAction("Deshacer", new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -753,6 +688,20 @@ public class CreateNoteActivity extends AppCompatActivity {
             }
         });
         snackbar.show();
+        snackbar.addCallback(new Snackbar.Callback(){
+            @Override
+            public void onShown(Snackbar sb) {
+                tb.setTranslationY(-120);
+                super.onShown(sb);
+            }
+        });
+        snackbar.addCallback(new Snackbar.Callback() {
+            @Override
+            public void onDismissed(Snackbar transientBottomBar, int event) {
+                super.onDismissed(transientBottomBar, event);
+                tb.setTranslationY(0);
+            }
+        });
 
         View snack = snackbar.getView();
         TextView snackText = snack.findViewById(android.support.design.R.id.snackbar_action);

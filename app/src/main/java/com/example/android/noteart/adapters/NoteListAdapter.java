@@ -63,8 +63,14 @@ public class NoteListAdapter extends RecyclerView.Adapter<NoteListAdapter.NoteVi
         String textOfCheckBox = note.getDescripcion();
         String isCheckedText = note.getCheckbox();
 
-        if (note.getTitulo().isEmpty()) noteViewHolder.mTextViewTitle.setVisibility(View.GONE);
-        else noteViewHolder.mTextViewTitle.setVisibility(View.VISIBLE);
+        if (note.getTitulo().isEmpty()) {
+            noteViewHolder.mTextViewTitle.setVisibility(View.GONE);
+            noteViewHolder.mTextViewBorder.setVisibility(View.GONE);
+        }
+        else {
+            noteViewHolder.mTextViewTitle.setVisibility(View.VISIBLE);
+            noteViewHolder.mTextViewBorder.setVisibility(View.VISIBLE);
+        }
 
         if (note.getEsChecklist() == 0) { // Es una checklist
             String[] textsArr = textOfCheckBox.split(DELIMITER);
@@ -76,11 +82,6 @@ public class NoteListAdapter extends RecyclerView.Adapter<NoteListAdapter.NoteVi
             String initFalse = "\u25A1 ";
             String delimiterTrue = "\n\u25A0 ";
             String initTrue = "\u25A0 ";
-
-            if (checksArr.length > textsArr.length) {
-                int diff = checksArr.length - textsArr.length;
-                for (int x = 0; x < diff; x++) texts.add("");
-            }
 
             for (int x = 0; x < checks.size(); x++) {
                 if (x == 0) {
@@ -142,7 +143,7 @@ public class NoteListAdapter extends RecyclerView.Adapter<NoteListAdapter.NoteVi
     class NoteViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener,
         View.OnLongClickListener {
 
-        TextView mTextViewTitle, mTextViewContent, mTextViewDate, mTextViewFrame;
+        TextView mTextViewTitle, mTextViewContent, mTextViewDate, mTextViewFrame, mTextViewBorder;
         LinearLayout mLinearLayout;
 
         NoteViewHolder(View itemView) {
@@ -156,6 +157,7 @@ public class NoteListAdapter extends RecyclerView.Adapter<NoteListAdapter.NoteVi
             mTextViewDate = itemView.findViewById(R.id.tv_date_note);
             mTextViewFrame = itemView.findViewById(R.id.tv_frame);
             mLinearLayout = itemView.findViewById(R.id.ll_linear_layout_main);
+            mTextViewBorder = itemView.findViewById(R.id.tv_borderline_note);
         }
 
         @Override

@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.preference.PreferenceManager;
@@ -13,9 +14,11 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.view.menu.MenuBuilder;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -90,6 +93,28 @@ public class ListMainActivity extends AppCompatActivity implements NoteListAdapt
      *                               METODOS SET PARA ON CREATE                                  *
      *                                                                                           *
      *********************************************************************************************/
+
+    /**
+     *
+     * onConfigurationChanged: Listener para cambiar el layoutmanager del recyclerview para
+     * cuando este en modo retrato y modo landscape
+     *
+     * */
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            GridLayoutManager lm = new GridLayoutManager(this, 2);
+            mRecyclerViewNotes.setLayoutManager(lm);
+            mRecyclerViewNotes.setAdapter(mAdapterNote);
+            mAdapterNote.notifyDataSetChanged();
+        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
+            LinearLayoutManager lm = new LinearLayoutManager(this);
+            mRecyclerViewNotes.setLayoutManager(lm);
+            mRecyclerViewNotes.setAdapter(mAdapterNote);
+            mAdapterNote.notifyDataSetChanged();
+        }
+    }
 
     /**
      *

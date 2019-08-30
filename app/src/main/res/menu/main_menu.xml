@@ -20,7 +20,7 @@
         android:id="@+id/menu_filter_by"
         android:orderInCategory="4"
         app:showAsAction="ifRoom"
-        android:icon="@drawable/ic_reorder"
+        android:icon="@drawable/ic_sort"
         android:title="@string/menu_filter"/>
 
     <item

@@ -14,6 +14,13 @@
         android:layout_gravity="center"
         android:id="@+id/cb_check_box_rv"/>
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/tv_drag_and_move_checklist_elem"
+        android:layout_gravity="center"
+        android:background="@drawable/ic_drag"/>
+
     <EditText
         android:layout_width="0dp"
         android:layout_height="wrap_content"
