@@ -1,37 +1,38 @@
 package com.example.android.noteart.adapters;
 
 import android.content.Context;
+import android.graphics.Rect;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
-import android.text.Editable;
 import android.text.InputType;
-import android.text.SpannableString;
-import android.text.SpannableStringBuilder;
-import android.text.Spanned;
-import android.text.TextWatcher;
-import android.text.style.StrikethroughSpan;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.android.noteart.R;
+import com.example.android.noteart.commonUtils.SwipeDragAndDropChecklist.ItemTouchHelperListener;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
-public class CreateCheckListAdapter extends RecyclerView.Adapter<CreateCheckListAdapter.CheckElemViewHolder> {
+public class CreateCheckListAdapter extends RecyclerView.Adapter<CreateCheckListAdapter.CheckElemViewHolder>
+        implements ItemTouchHelperListener {
 
     private Context mContext;
     private ArrayList<String> textList;
     private ArrayList<Boolean> checkedList;
     private boolean mode;
+    public boolean isDragHelperTouched = false;
 
     public CreateCheckListAdapter(Context ctx, ArrayList<String> editTexts, ArrayList<Boolean> checkedList, boolean mode) {
         mContext = ctx;
@@ -63,6 +64,7 @@ public class CreateCheckListAdapter extends RecyclerView.Adapter<CreateCheckList
         final TextView button = checkElemViewHolder.buttonDelete;
         final int position = checkElemViewHolder.getAdapterPosition();
         final CheckBox checkBox = checkElemViewHolder.checkBox;
+        final TextView holder = checkElemViewHolder.dragHelper;
 
         if (checkedList.get(position)) { setCheckTrue(button, edit); }
         else { setCheckFalse(button, edit); }
@@ -72,73 +74,82 @@ public class CreateCheckListAdapter extends RecyclerView.Adapter<CreateCheckList
         edit.setImeOptions(EditorInfo.IME_ACTION_DONE);
         edit.setRawInputType(InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
 
-        // Manejo de aparicion de los botones del elemento
-        if (!edit.hasFocus()) {
-            button.setVisibility(View.GONE);
-        } else {
-            button.setVisibility(View.VISIBLE);
-        }
+        /**
+         * Handler del drag and drop
+         **/
+        holder.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                if (textList.size() > 1) {
+                    isDragHelperTouched = true;
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        });
 
-        // Manejo del focus
+        /**
+         * Manejo del focus
+         * */
         if (textList.contains("") && !mode) {
-            if (position == textList.indexOf("")) edit.requestFocus();
+            if (position == textList.indexOf("")) { edit.requestFocus(); }
         }
 
-        // Cambio de modo para que al editar, los edit text sigan teniendo focus
+        /**
+         * Cambio de modo para que al editar, los edit text sigan teniendo focus
+         * */
         edit.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View view, boolean b) {
                 if (b) {
                     mode = false;
-                    button.setVisibility(View.VISIBLE);
                 } else {
-                    button.setVisibility(View.GONE);
                     final String text = edit.getText().toString();
-                    if (position <= textList.size() - 1) {
-                        textList.set(position, text);
-                        checkedList.set(position, checkBox.isChecked());
-                    }
+                    setContent(position, text, checkBox);
                 }
             }
         });
 
-        // Se guarda el texto del edit text y se inserta un nuevo elemento cuando se pulsa el botón
+        /**
+         * Se guarda el texto del edit text y se inserta un nuevo elemento cuando se pulsa el botón
+         * */
         edit.setOnEditorActionListener(new EditText.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
-                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                final String text = edit.getText().toString();
 
-                    final String text = edit.getText().toString();
-                    if (position <= textList.size() - 1) {
-                        textList.set(position, text);
-                        checkedList.set(position, checkBox.isChecked());
-                        button.setVisibility(View.GONE);
+                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                    if (position == textList.size() - 1 || !textList.get(position + 1).trim().isEmpty()) {
+                        setContent(position, text, checkBox);
+                    } else {
+                        setContent(position, text, checkBox);
+                        if (textList.size() != 1) { removeElement(position + 1); }
                     }
 
                     textList.add(position + 1, "");
                     checkedList.add(position + 1, false);
                     notifyItemInserted(position + 1);
-                    notifyItemRangeChanged(0, textList.size());
+                    notifyItemRangeChanged(position, textList.size() - position);
                     return true;
                 }
                 return false;
             }
         });
 
-        // Eliminación de un elemento de la checklist
+        /**
+         * Eliminación de un elemento de la checklist
+         * */
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (textList.size() != 1) {
-                    textList.remove(position);
-                    checkedList.remove(position);
-                    notifyItemRemoved(position);
-                    notifyItemRangeChanged(position, textList.size() - position);
-                }
+                if (textList.size() != 1) { removeElement(position); }
             }
         });
 
-        // Manejo de las checks
+        /**
+         * Manejo de los checks
+         * */
         checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
@@ -160,11 +171,25 @@ public class CreateCheckListAdapter extends RecyclerView.Adapter<CreateCheckList
         else return textList.size();
     }
 
+    private void setContent(int position, String text, CheckBox checkBox) {
+        if (position <= textList.size() - 1) {
+            textList.set(position, text);
+            checkedList.set(position, checkBox.isChecked());
+        }
+    }
+
     public void addNewElementOnButton() {
         textList.add(textList.size(), "");
         checkedList.add(checkedList.size(), false);
         notifyItemInserted(textList.size() + 1);
         notifyItemRangeChanged(0, textList.size());
+    }
+
+    private void removeElement(int position) {
+        textList.remove(position);
+        checkedList.remove(position);
+        notifyItemRemoved(position);
+        notifyItemRangeChanged(position, textList.size() - (position));
     }
 
     public void setBinds(ArrayList<String> editTextList, ArrayList<Boolean> isCheckedList) {
@@ -195,17 +220,26 @@ public class CreateCheckListAdapter extends RecyclerView.Adapter<CreateCheckList
         edit.setTextColor(ContextCompat.getColor(mContext, R.color.colorTextContent));
     }
 
+    @Override
+    public boolean onItemMove(int fromPosition, int toPosition) {
+        Collections.swap(textList, fromPosition, toPosition);
+        Collections.swap(checkedList, fromPosition, toPosition);
+        notifyItemMoved(fromPosition, toPosition);
+        return true;
+    }
+
     class CheckElemViewHolder extends RecyclerView.ViewHolder {
 
         EditText editText;
         CheckBox checkBox;
-        TextView buttonDelete;
+        TextView buttonDelete, dragHelper;
 
         CheckElemViewHolder(View itemView) {
             super(itemView);
             editText = itemView.findViewById(R.id.edit_text_checkbox_rv);
             checkBox = itemView.findViewById(R.id.cb_check_box_rv);
             buttonDelete = itemView.findViewById(R.id.button_delete_check);
+            dragHelper = itemView.findViewById(R.id.tv_drag_and_move_checklist_elem);
         }
     }
 

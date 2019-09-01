@@ -35,4 +35,10 @@
     <string name="deselect_all">Deshacer selección</string>
     <string name="message_delete">Las notas se eliminarán permanentemente.</string>
     <string name="eliminar_nota">Eliminar nota</string>
+    <string name="añadir_recordatorio">Añadir Recordatorio</string>
+    <string name="selecciona_fecha">Selecciona una fecha</string>
+    <string name="formato_fecha">dd/mm/yyyy</string>
+    <string name="selecciona_hora">Selecciona una hora</string>
+    <string name="format_time">hh:mm</string>
+    <string name="añadir_boton">Añadir</string>
 </resources>

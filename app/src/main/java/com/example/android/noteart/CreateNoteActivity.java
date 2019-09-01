@@ -1,50 +1,62 @@
 package com.example.android.noteart;
 
+import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.Editable;
-import android.text.Html;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.util.Linkify;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.example.android.noteart.adapters.CreateCheckListAdapter;
 import com.example.android.noteart.commonUtils.LinksManagement;
+import com.example.android.noteart.commonUtils.SwipeDragAndDropChecklist;
 import com.example.android.noteart.database.NoteArtDatabase;
 import com.example.android.noteart.database.NoteEntity;
-import com.example.android.noteart.commonUtils.DatabaseQueries;
+import com.example.android.noteart.database.DatabaseQueries;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 
 public class CreateNoteActivity extends AppCompatActivity {
 
     private EditText mEditTextTitle, mEditTextDescription;
+    private TextView mTextViewTimePicker, mTextViewDatePicker;
     private TextView mToolbarCreationMode, mTextViewAddElem;
     private LinearLayout ll;
     private ScrollView sc;
@@ -53,7 +65,8 @@ public class CreateNoteActivity extends AppCompatActivity {
     private Toast mToast;
     private Menu mMenu;
     private RecyclerView mRecyclerView;
-    private CreateCheckListAdapter mAdpater;
+    private CreateCheckListAdapter mAdapter;
+    private ItemTouchHelper touchHelper;
 
     private final String NOTE_ID = "id_nota";
     private final String UPDATE_NOTE = "update_nota";
@@ -185,6 +198,8 @@ public class CreateNoteActivity extends AppCompatActivity {
                 loadQuery(intent);
             } else {
                 mEditTextDescription.requestFocus();
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
             }
         } else if(isOnCreationMode.equals(CREATION_MODE_2)) {  // CHECKLIST
             mToolbarCreationMode.setBackground(getDrawable(R.drawable.ic_note));
@@ -196,7 +211,9 @@ public class CreateNoteActivity extends AppCompatActivity {
                 setRecyclerView(editTextListCheckBox, isCheckedListCheckBox, false);
                 editTextListCheckBox.add("");
                 isCheckedListCheckBox.add(false);
-                mAdpater.setBinds(editTextListCheckBox, isCheckedListCheckBox);
+                mAdapter.setBinds(editTextListCheckBox, isCheckedListCheckBox);
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
             }
         }
     }
@@ -243,9 +260,9 @@ public class CreateNoteActivity extends AppCompatActivity {
      *
      * */
     private void checkOnDestroyCheckList(Intent intent) {
-        int sizeOfList = mAdpater.getCheckedList().size();
+        int sizeOfList = mAdapter.getCheckedList().size();
         int isEmpty = 0;
-        ArrayList<String> et = mAdpater.getTextList();
+        ArrayList<String> et = mAdapter.getTextList();
         for (int x = 0; x < et.size(); x++) {
             if (et.get(x).equals("")) isEmpty++;
         }
@@ -293,9 +310,12 @@ public class CreateNoteActivity extends AppCompatActivity {
         LinearLayoutManager lm = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(lm);
 
-        mAdpater = new CreateCheckListAdapter(this, text, checks, mode);
+        mAdapter = new CreateCheckListAdapter(getApplicationContext(), text, checks, mode);
 
-        mRecyclerView.setAdapter(mAdpater);
+        touchHelper = new ItemTouchHelper(new SwipeDragAndDropChecklist(this, mAdapter));
+        touchHelper.attachToRecyclerView(mRecyclerView);
+
+        mRecyclerView.setAdapter(mAdapter);
     }
 
     /**
@@ -433,7 +453,7 @@ public class CreateNoteActivity extends AppCompatActivity {
                         descriptionOnDelete = res[0];
                         checksOnDelete = res[1];
                         mEditTextTitle.setText("");
-                        mAdpater.setBinds(new ArrayList<String>(), new ArrayList<Boolean>());
+                        mAdapter.setBinds(new ArrayList<String>(), new ArrayList<Boolean>());
                         makeSnackBar("Lista descartada");
                     } else {
                         makeToast(getResources().getString(R.string.error_toast_delete));
@@ -475,8 +495,8 @@ public class CreateNoteActivity extends AppCompatActivity {
      *
      * */
     private String[] getCurrentDescriptionAndCheckBoxes(){
-        ArrayList<String> et = mAdpater.getTextList();
-        ArrayList<Boolean> ck = mAdpater.getCheckedList();
+        ArrayList<String> et = mAdapter.getTextList();
+        ArrayList<Boolean> ck = mAdapter.getCheckedList();
 
         for (int x = 0; x < et.size(); x++) {
             if (et.get(x).trim().isEmpty()) {
@@ -497,48 +517,44 @@ public class CreateNoteActivity extends AppCompatActivity {
 
     /**
      *
-     * dispatchTouchEvent y onBackPressed: Ayuda que al darle atrás de la checklist,
+     * onBackPressed: Ayuda que al darle atrás de la checklist,
      * se pierda el focus de los editText y, en consecuencia, se pueda guardar el texto correctamente
-     *
-     * Solo está activo en el modo de checklists
      *
      * */
     @Override
     public void onBackPressed() {
-        if (isOnCreationMode.equals(CREATION_MODE_2)) {
-            View v = getCurrentFocus();
-            if (v instanceof EditText) {
-                Rect outRect = new Rect();
-                v.getGlobalVisibleRect(outRect);
-                v.clearFocus();
-                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
-            }
+        View v = getCurrentFocus();
+        if (v instanceof EditText) {
+            Rect outRect = new Rect();
+            v.getGlobalVisibleRect(outRect);
+            v.clearFocus();
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
         }
         super.onBackPressed();
     }
 
-    /*
+    /**
+     *
+     * dispatchTouchEvent: Ayuda a que al darle a los EditText drag and drop se pierda el focus
+     *
+     * */
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
-        if (isOnCreationMode.equals(CREATION_MODE_2) && !isAddElementPressed) {
-            if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                View v = getCurrentFocus();
-                if (v instanceof EditText) {
-                    Rect outRect = new Rect();
-                    v.getGlobalVisibleRect(outRect);
-                    if (!outRect.contains((int) event.getRawX(), (int) event.getRawY())) {
-                        v.clearFocus();
-                        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                        imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
-                    }
+        if (event.getAction() == MotionEvent.ACTION_DOWN && isOnCreationMode.equals(CREATION_MODE_2)) {
+            View v = getCurrentFocus();
+            if (v instanceof EditText) {
+                Rect outRect = new Rect();
+                v.getGlobalVisibleRect(outRect);
+                if (!outRect.contains((int)event.getRawX(), (int)event.getRawY())) {
+                    v.clearFocus();
+                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
                 }
             }
-            isAddElementPressed = false;
         }
         return super.dispatchTouchEvent(event);
     }
-    */
 
     /**
      *
@@ -554,13 +570,13 @@ public class CreateNoteActivity extends AppCompatActivity {
         }
         int sizeOfList = checks.length;
 
-        ArrayList<String> et = mAdpater.getTextList();
-        ArrayList<Boolean> ck = mAdpater.getCheckedList();
+        ArrayList<String> et = mAdapter.getTextList();
+        ArrayList<Boolean> ck = mAdapter.getCheckedList();
         for (int x = 0; x < sizeOfList; x++) {
             et.add(desc[x]);
             ck.add(checkedBoxes[x]);
         }
-        mAdpater.setBinds(et, ck);
+        mAdapter.setBinds(et, ck);
     }
 
     /**
@@ -571,72 +587,6 @@ public class CreateNoteActivity extends AppCompatActivity {
     private int checkArchivada(boolean arc) {
         if (arc) return 1;
         else return 0;
-    }
-
-    /**
-     *
-     * changeCreationMode: Cambia el modo de creacion de nota a checklist o de checklist a nota
-     *
-     * */
-    public void changeCreationMode(View view) {
-        if (isOnCreationMode.equals(CREATION_MODE_1)) {
-            isOnCreationMode = CREATION_MODE_2;
-            esChecklist = 0;
-            mToolbarCreationMode.setBackground(getDrawable(R.drawable.ic_note));
-
-            String[] textsEachLine = mEditTextDescription.getText().toString().split("\n");
-            ArrayList<String> texts = new ArrayList<>();
-            ArrayList<Boolean> checks = new ArrayList<>();
-
-            if (textsEachLine.length == 1 && (textsEachLine[0].isEmpty() || textsEachLine[0].trim().isEmpty())) {
-                texts.add("");
-                checks.add(false);
-            } else {
-                for (int x = 0; x < textsEachLine.length; x++) {
-                    if (!textsEachLine[x].equals("\n") && textsEachLine[x] != null
-                            && !textsEachLine[x].trim().isEmpty()) {
-                        texts.add(textsEachLine[x]);
-                        checks.add(false);
-                    }
-                }
-            }
-            mRecyclerView.setVisibility(View.VISIBLE);
-            mTextViewAddElem.setVisibility(View.VISIBLE);
-            mEditTextDescription.setVisibility(View.GONE);
-            setScrollViewParams(false, 10);
-
-            setRecyclerView(texts, checks, false);
-        } else if (isOnCreationMode.equals(CREATION_MODE_2)) {
-            isOnCreationMode = CREATION_MODE_1;
-            esChecklist = 1;
-            mToolbarCreationMode.setBackground(getDrawable(R.drawable.ic_check_box));
-
-            ArrayList<String> et = mAdpater.getTextList();
-            String textParsed = TextUtils.join("\n", et);
-
-            mRecyclerView.setVisibility(View.GONE);
-            mTextViewAddElem.setVisibility(View.GONE);
-            mEditTextDescription.setVisibility(View.VISIBLE);
-            mEditTextDescription.requestFocus();
-            mEditTextDescription.setText(textParsed);
-            mEditTextDescription.setSelection(mEditTextDescription.getText().length());
-
-            setScrollViewParams(true, 45);
-        }
-    }
-
-    /**
-     *
-     * addElemToChecklist: Por si el usuario quiere añadir un elemento
-     *
-     * */
-    public void addElemToChecklist(View view) {
-        ArrayList<Boolean> checks = mAdpater.getCheckedList();
-        if (!checks.contains(false)) {
-            mAdpater.addNewElementOnButton();
-        } else {
-            makeToast("Todavía tienes tareas sin hacer");
-        }
     }
 
     /**
@@ -711,5 +661,146 @@ public class CreateNoteActivity extends AppCompatActivity {
     private void makeToast(String msg) {
         if (mToast != null) mToast.cancel();
         mToast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+    }
+
+    /********************************************************************************************
+     *                                                                                           *
+     *                                  METODOS DE TOOLBAR                                       *
+     *                                                                                           *
+     *********************************************************************************************/
+
+    /**
+     *
+     * changeCreationMode: Cambia el modo de creacion de nota a checklist o de checklist a nota
+     *
+     * */
+    public void changeCreationMode(View view) {
+        if (isOnCreationMode.equals(CREATION_MODE_1)) {
+            isOnCreationMode = CREATION_MODE_2;
+            esChecklist = 0;
+            mToolbarCreationMode.setBackground(getDrawable(R.drawable.ic_note));
+
+            String[] textsEachLine = mEditTextDescription.getText().toString().split("\n");
+            ArrayList<String> texts = new ArrayList<>();
+            ArrayList<Boolean> checks = new ArrayList<>();
+
+            if (textsEachLine.length == 1 && (textsEachLine[0].isEmpty() || textsEachLine[0].trim().isEmpty())) {
+                texts.add("");
+                checks.add(false);
+            } else {
+                for (int x = 0; x < textsEachLine.length; x++) {
+                    if (!textsEachLine[x].equals("\n") && textsEachLine[x] != null
+                            && !textsEachLine[x].trim().isEmpty()) {
+                        texts.add(textsEachLine[x]);
+                        checks.add(false);
+                    }
+                }
+            }
+
+            mRecyclerView.setVisibility(View.VISIBLE);
+            mTextViewAddElem.setVisibility(View.VISIBLE);
+            mEditTextDescription.setVisibility(View.GONE);
+            setScrollViewParams(false, 10);
+
+            setRecyclerView(texts, checks, false);
+        } else if (isOnCreationMode.equals(CREATION_MODE_2)) {
+            isOnCreationMode = CREATION_MODE_1;
+            esChecklist = 1;
+            mToolbarCreationMode.setBackground(getDrawable(R.drawable.ic_check_box));
+
+            ArrayList<String> et = mAdapter.getTextList();
+            String textParsed = TextUtils.join("\n", et);
+
+            mRecyclerView.setVisibility(View.GONE);
+            mTextViewAddElem.setVisibility(View.GONE);
+            mEditTextDescription.setVisibility(View.VISIBLE);
+            mEditTextDescription.requestFocus();
+            mEditTextDescription.setText(textParsed);
+            mEditTextDescription.setSelection(mEditTextDescription.getText().length());
+
+            setScrollViewParams(true, 45);
+        }
+    }
+
+    /**
+     *
+     * addElemToChecklist: Por si el usuario quiere añadir un elemento
+     *
+     * */
+    public void addElemToChecklist(View view) {
+        mAdapter.addNewElementOnButton();
+        View v = getCurrentFocus();
+        if (v instanceof EditText) {
+            Rect outRect = new Rect();
+            v.getGlobalVisibleRect(outRect);
+            v.clearFocus();
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+        }
+    }
+
+    /**
+     *
+     * copyContentToClipboard: Copiar el contenido de la nota en el clipboard
+     *
+     * */
+    public void copyContentToClipboard(View view) {
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        String text = "";
+        if (isOnCreationMode.equals(CREATION_MODE_1)) {
+            text = mEditTextDescription.getText().toString();
+        } else {
+            text = TextUtils.join("\n", mAdapter.getTextList());
+        }
+        ClipData clip = ClipData.newPlainText("descripcion", text);
+        clipboard.setPrimaryClip(clip);
+        mEditTextDescription.clearFocus();
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        makeToast("Nota copiada al portapapeles");
+    }
+
+    public void addAlarmToNote(View view) {
+        View mView = getLayoutInflater().inflate(R.layout.create_alert, null);
+        mTextViewTimePicker = mView.findViewById(R.id.et_show_time);
+        mTextViewDatePicker = mView.findViewById(R.id.et_show_date);
+
+        AlertDialog.Builder alarm = new AlertDialog.Builder(this)
+                .setView(R.layout.create_alert);
+        alarm.create().show();
+    }
+
+    public void addAlarm(View view) {
+        makeToast("Recordatorio añadido");
+    }
+
+    public void openTimePickerDialog(View view) {
+        TimePickerDialog mTimePicker;
+        Calendar mcurrentTime = Calendar.getInstance();
+        final int hour = mcurrentTime.get(Calendar.HOUR_OF_DAY);
+        final int minute = mcurrentTime.get(Calendar.MINUTE);
+
+        mTimePicker = new TimePickerDialog(this, new TimePickerDialog.OnTimeSetListener() {
+            @Override
+            public void onTimeSet(TimePicker timePicker, int hourSel, int minuteSel) {
+                mTextViewTimePicker.setText(hourSel + ":" + minuteSel);
+            }
+        }, hour, minute, true);
+        mTimePicker.show();
+    }
+
+    public void openDatePickerDialog(View view) {
+       DatePickerDialog mDatePicker;
+        Calendar mcurrentDate = Calendar.getInstance();
+        final int mYear = mcurrentDate.get(Calendar.YEAR);
+        final int mMonth = mcurrentDate.get(Calendar.MONTH);
+        final int mDay = mcurrentDate.get(Calendar.DAY_OF_MONTH);
+
+        mDatePicker = new DatePickerDialog(this, new DatePickerDialog.OnDateSetListener() {
+            public void onDateSet(DatePicker datepicker, int selectedyear, int selectedmonth, int selectedday) {
+                mTextViewDatePicker.setText("" + selectedday + "/" + selectedmonth + "/" + selectedyear);
+            }
+        }, mYear, mMonth, mDay);
+        mDatePicker.show();
     }
 }

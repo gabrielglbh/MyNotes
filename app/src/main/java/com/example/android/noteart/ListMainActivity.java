@@ -5,8 +5,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
-import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
@@ -18,7 +16,6 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -29,9 +26,9 @@ import android.widget.TextView;
 import com.example.android.noteart.adapters.NoteListAdapter;
 import com.example.android.noteart.database.NoteEntity;
 import com.example.android.noteart.commonUtils.CustomSharedPreferences;
-import com.example.android.noteart.commonUtils.DatabaseQueries;
+import com.example.android.noteart.database.DatabaseQueries;
 import com.example.android.noteart.commonUtils.DeleteModeOperations;
-import com.example.android.noteart.commonUtils.SwipeHandle;
+import com.example.android.noteart.commonUtils.SwipeHandleToArchived;
 
 import java.util.ArrayList;
 
@@ -265,7 +262,7 @@ public class ListMainActivity extends AppCompatActivity implements NoteListAdapt
 
         mRecyclerViewNotes.setAdapter(mAdapterNote);
 
-        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new SwipeHandle(
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new SwipeHandleToArchived(
                 mAdapterNote, getApplicationContext(), 1, "Nota archivada", false));
         itemTouchHelper.attachToRecyclerView(mRecyclerViewNotes);
     }
@@ -430,7 +427,7 @@ public class ListMainActivity extends AppCompatActivity implements NoteListAdapt
     public void makeAlertDeleteMode() {
         final AlertDialog.Builder builder = new AlertDialog.Builder(this,
                 R.style.Theme_MaterialComponents_Light_Dialog_Alert)
-                .setTitle("¿Quieres eliminar las " + totalCountSelected + " notas seleccionadas?")
+                .setTitle("¿Quieres eliminar las notas seleccionadas ("+ totalCountSelected +")?")
                 .setMessage(R.string.message_delete)
                 .setNegativeButton("No", new DialogInterface.OnClickListener() {
                     @Override

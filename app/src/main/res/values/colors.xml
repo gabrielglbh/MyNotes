@@ -12,12 +12,9 @@
     <color name="colorTextContent">#333333</color>
     <color name="colorBorderNote">#b1b1b1</color>
 
-    <color name="priority1">#c73a30</color>
-    <color name="priority2">#de9e2f</color>
-    <color name="priority3">#96c227</color>
-
-    <color name="icons">#F7971E</color>s
+    <color name="icons">#F7971E</color>
     <color name="iconsOnMenu">#FFFFFF</color>
 
     <color name="selectedFrame">#e2e2e2</color>
+    <color name="selectedCheck">#f2f2f2</color>
 </resources>

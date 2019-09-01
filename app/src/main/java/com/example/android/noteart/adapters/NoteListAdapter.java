@@ -83,7 +83,7 @@ public class NoteListAdapter extends RecyclerView.Adapter<NoteListAdapter.NoteVi
             String delimiterTrue = "\n\u25A0 ";
             String initTrue = "\u25A0 ";
 
-            for (int x = 0; x < checks.size(); x++) {
+            for (int x = 0; x < texts.size(); x++) {
                 if (x == 0) {
                     if(checks.get(0).equals("true")) texts.set(0,initTrue.concat(texts.get(0)));
                     else texts.set(0, initFalse.concat(texts.get(0)));

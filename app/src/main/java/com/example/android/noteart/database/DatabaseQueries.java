@@ -1,4 +1,4 @@
-package com.example.android.noteart.commonUtils;
+package com.example.android.noteart.database;
 
 import android.arch.lifecycle.LifecycleOwner;
 import android.arch.lifecycle.LiveData;
@@ -6,9 +6,6 @@ import android.arch.lifecycle.Observer;
 import android.content.Context;
 
 import com.example.android.noteart.adapters.NoteListAdapter;
-import com.example.android.noteart.database.NoteArtDatabase;
-import com.example.android.noteart.database.NoteArtExecutors;
-import com.example.android.noteart.database.NoteEntity;
 
 import java.util.List;
 

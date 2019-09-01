@@ -22,7 +22,7 @@ public class CustomSharedPreferences {
     /**
      *
      * setSharedPreferencesDeleteMode: se escribe el modo seleccionado en sharedPreferences para
-     * su uso en SwipeHandle
+     * su uso en SwipeHandleToArchived
      *
      * */
     public static void setSharedPreferencesDeleteMode(Context ctx, String id, boolean deleteMode) {

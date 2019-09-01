@@ -19,11 +19,11 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.android.noteart.adapters.NoteListAdapter;
+import com.example.android.noteart.commonUtils.SwipeHandleToArchived;
 import com.example.android.noteart.database.NoteEntity;
 import com.example.android.noteart.commonUtils.CustomSharedPreferences;
-import com.example.android.noteart.commonUtils.DatabaseQueries;
+import com.example.android.noteart.database.DatabaseQueries;
 import com.example.android.noteart.commonUtils.DeleteModeOperations;
-import com.example.android.noteart.commonUtils.SwipeHandle;
 
 import java.util.ArrayList;
 
@@ -131,7 +131,7 @@ public class ListNotesArchivedActivity extends AppCompatActivity
 
         mRecyclerViewMain.setAdapter(mAdapterNote);
 
-        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new SwipeHandle(
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new SwipeHandleToArchived(
                 mAdapterNote, getApplicationContext(), 0, "Nota restaurada", true));
         itemTouchHelper.attachToRecyclerView(mRecyclerViewMain);
     }
@@ -345,7 +345,7 @@ public class ListNotesArchivedActivity extends AppCompatActivity
     public void makeAlertDeleteMode() {
         final AlertDialog.Builder builder = new AlertDialog.Builder(this,
                 R.style.Theme_MaterialComponents_Light_Dialog_Alert)
-                .setTitle("¿Quieres eliminar las " + totalCountSelected + " notas seleccionadas?")
+                .setTitle("¿Quieres eliminar las notas seleccionadas ("+ totalCountSelected +")?")
                 .setMessage(R.string.message_delete)
                 .setNegativeButton("No", new DialogInterface.OnClickListener() {
                     @Override

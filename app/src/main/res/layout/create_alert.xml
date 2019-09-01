@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="10dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/añadir_recordatorio"
+        android:textSize="22sp"
+        android:textColor="@color/colorTextTitle"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:layout_marginBottom="15dp"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/selecciona_fecha"
+        android:textSize="18sp"
+        android:layout_marginStart="15dp"
+        android:layout_marginBottom="6dp"
+        android:textColor="@color/colorTextTitle"
+        android:layout_gravity="start"
+        android:gravity="start"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="15dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/et_show_date"
+            android:layout_marginStart="15dp"
+            android:hint="@string/formato_fecha"
+            android:textSize="18sp"
+            android:layout_weight="2" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/ic_date_range"
+            android:layout_marginEnd="15dp"
+            android:onClick="openDatePickerDialog"
+            android:layout_marginStart="10dp"/>
+
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/selecciona_hora"
+        android:textSize="18sp"
+        android:layout_marginStart="15dp"
+        android:layout_marginBottom="6dp"
+        android:textColor="@color/colorTextTitle"
+        android:layout_gravity="start"
+        android:gravity="start"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/et_show_time"
+            android:layout_marginStart="15dp"
+            android:hint="@string/format_time"
+            android:textSize="18sp"
+            android:layout_weight="2"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/ic_time"
+            android:layout_marginEnd="15dp"
+            android:onClick="openTimePickerDialog"
+            android:layout_marginStart="10dp"/>
+    </LinearLayout>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/round_square_button"
+        android:text="@string/añadir_boton"
+        android:textSize="15sp"
+        android:layout_marginTop="15dp"
+        android:textColor="@color/colorPrimaryActionBar"
+        android:layout_gravity="center"
+        android:onClick="addAlarm"/>
+
+</LinearLayout>

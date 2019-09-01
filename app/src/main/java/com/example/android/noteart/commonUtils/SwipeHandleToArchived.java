@@ -15,6 +15,7 @@ import android.widget.Toast;
 
 import com.example.android.noteart.adapters.NoteListAdapter;
 import com.example.android.noteart.R;
+import com.example.android.noteart.database.DatabaseQueries;
 import com.example.android.noteart.database.NoteEntity;
 
 import java.util.List;
@@ -24,7 +25,7 @@ import java.util.List;
  * handleMovementTouch: Manejo y administración de los clikcs y drags de los usuarios
  *
  * */
-public class SwipeHandle extends ItemTouchHelper.SimpleCallback{
+public class SwipeHandleToArchived extends ItemTouchHelper.SimpleCallback{
 
     private static Toast mToast;
     private NoteListAdapter adapter;
@@ -36,7 +37,7 @@ public class SwipeHandle extends ItemTouchHelper.SimpleCallback{
 
     private String ID_DELETEMODE_BUNDLE = "onDeleteMode";
 
-    public SwipeHandle (NoteListAdapter adapter, Context ctx, int archived, String msg, boolean isArchived) {
+    public SwipeHandleToArchived(NoteListAdapter adapter, Context ctx, int archived, String msg, boolean isArchived) {
         super(0,ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT);
         this.adapter = adapter;
         this.ctx = ctx;
@@ -109,18 +110,21 @@ public class SwipeHandle extends ItemTouchHelper.SimpleCallback{
         int top = itemView.getTop() + margin;
         int bottom = itemView.getBottom() - margin;
 
-        int iconMargin = (height - icon.getIntrinsicHeight()) / 2;
-        int iconTop = top + (height - icon.getIntrinsicHeight()) / 2;
-        int iconBottom = iconTop + icon.getIntrinsicHeight();
+        int iconIntrHeight = icon.getIntrinsicHeight();
+        int iconIntrWidth = icon.getIntrinsicWidth();
+
+        int iconMargin = (height - iconIntrHeight) / 2;
+        int iconTop = top + iconMargin;
+        int iconBottom = iconTop + iconIntrHeight;
 
         if (dX > 0) { // Swiping to the right
             int iconLeft = left + iconMargin;
-            int iconRight = iconLeft + icon.getIntrinsicWidth();
+            int iconRight = iconLeft + iconIntrWidth;
             icon.setBounds(iconLeft, iconTop, iconRight, iconBottom);
             background.setBounds(left, top, left + ((int) dX) + backgroundCornerOffset, bottom);
 
         } else if (dX < 0) { // Swiping to the left
-            int iconLeft = right - iconMargin - icon.getIntrinsicWidth();
+            int iconLeft = right - iconMargin - iconIntrWidth;
             int iconRight = right - iconMargin;
             icon.setBounds(iconLeft, iconTop, iconRight, iconBottom);
             background.setBounds(right + ((int) dX) - backgroundCornerOffset, top, right, bottom);
