@@ -20,16 +20,46 @@
         android:layout_margin="10dp"
         android:background="@color/colorPrimaryActionBar">
 
-        <TextView
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="5dp"
-            android:gravity="end|bottom"
+            android:orientation="horizontal"
             android:layout_marginEnd="10dp"
-            android:id="@+id/tv_date_note"
-            android:textSize="14sp"
-            android:textStyle="italic"
-            android:textColor="@color/colorTextContent" />
+            android:gravity="end|bottom">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/ic_recordatorio_nota"
+                android:visibility="gone"
+                android:orientation="horizontal"
+                android:background="@drawable/round_square">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/colorTextContent"
+                    android:textSize="15sp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:layout_gravity="center"
+                    android:id="@+id/tv_recordatorio_nota" />
+
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/tv_date_note"
+                android:layout_gravity="center"
+                android:textSize="14sp"
+                android:textStyle="italic"
+                android:textColor="@color/colorTextContent"
+                android:layout_marginEnd="15dp"
+                android:layout_marginStart="20dp"/>
+
+        </LinearLayout>
 
         <TextView
             android:layout_width="wrap_content"

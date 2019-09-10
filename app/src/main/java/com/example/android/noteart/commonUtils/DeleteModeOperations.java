@@ -1,7 +1,6 @@
 package com.example.android.noteart.commonUtils;
 
 import android.content.Context;
-import android.support.v4.content.ContextCompat;
 import android.view.Menu;
 import android.widget.LinearLayout;
 
@@ -9,6 +8,8 @@ import com.example.android.noteart.R;
 import com.example.android.noteart.database.NoteEntity;
 
 import java.util.ArrayList;
+
+import androidx.core.content.ContextCompat;
 
 public class DeleteModeOperations {
 

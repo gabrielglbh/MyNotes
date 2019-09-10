@@ -6,13 +6,20 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+
+        <!-- ACTION BAR -->
         <item name="actionBarStyle">@style/MyActionBar</item>
         <item name="android:statusBarColor">@color/colorPrimaryActionBar</item>
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:homeAsUpIndicator">@drawable/ic_arrow_back</item>
         <item name="android:actionOverflowButtonStyle">@style/option_more</item>
+
+        <!-- DATE PICKER -->
+        <item name="colorControlActivated">@color/colorPrimary</item>
+
     </style>
 
+    <!-- ACTION BAR -->
     <style name="MyActionBar" parent="@style/Widget.AppCompat.Light.ActionBar">
         <item name="android:background">@color/colorPrimaryActionBar</item>
         <item name="titleTextStyle">@style/MyActionBarTitle</item>
@@ -24,6 +31,12 @@
 
     <style name="option_more" parent="@style/Widget.AppCompat.Light.ActionButton.Overflow">
         <item name="android:src">@drawable/ic_more</item>
+    </style>
+
+    <!-- DATE PICKER -->
+    <!-- Y llamarlo al crear el datePicker con el estilo -->
+    <style name="PickerDialogTheme" parent="Theme.AppCompat.Light.Dialog">
+        <item name="colorAccent">@color/colorPrimaryDark</item>
     </style>
 
 </resources>

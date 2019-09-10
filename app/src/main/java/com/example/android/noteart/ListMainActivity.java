@@ -1,21 +1,13 @@
 package com.example.android.noteart;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.preference.PreferenceManager;
-import android.support.design.widget.Snackbar;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.view.menu.MenuBuilder;
-import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -29,34 +21,40 @@ import com.example.android.noteart.commonUtils.CustomSharedPreferences;
 import com.example.android.noteart.database.DatabaseQueries;
 import com.example.android.noteart.commonUtils.DeleteModeOperations;
 import com.example.android.noteart.commonUtils.SwipeHandleToArchived;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.view.menu.MenuBuilder;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 public class ListMainActivity extends AppCompatActivity implements NoteListAdapter.ListItemClickListener {
 
     private RecyclerView mRecyclerViewNotes;
     private NoteListAdapter mAdapterNote;
     private FrameLayout fm;
-    private android.support.v7.widget.Toolbar tb;
+    private Toolbar tb;
     private Menu mMenu;
     private AlertDialog alt, altDelete;
 
     private ArrayList<NoteEntity> mNoteListSelected = new ArrayList<>();
     private ArrayList<LinearLayout> mTextViewListSelected = new ArrayList<>();
     private ArrayList<Integer> mNotesIdList = new ArrayList<>();
-    private String defaultFilter = "Fecha";
-    private String defaultOrder = "DESC";
     private int itemClicked = 0, totalCountSelected = 1;
     private boolean isDeleteModeOpen = false;
-
-    private final String orderAsc = "ASC";
-    private final String orderDesc = "DESC";
     private final String[] ID_BUNDLE = {"priority", "orderBy"};
-    private final String ID_DELETEMODE_BUNDLE = "onDeleteMode";
 
-    private final String ID_CREATION_MODE = "creationMode";
-    private final String CREATION_MODE_1 = "nota";
-    private final String CREATION_MODE_2 = "checklist";
+    public static String defaultFilter = "Fecha";
+    public static String defaultOrder = "DESC";
+    public static final String orderAsc = "ASC";
+    public static final String orderDesc = "DESC";
+    public static final String ID_DELETEMODE_BUNDLE = "onDeleteMode";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -293,7 +291,7 @@ public class ListMainActivity extends AppCompatActivity implements NoteListAdapt
                     mTextViewListSelected, mMenu, mNoteListSelected, false);
         }
         Intent createNote = new Intent(getApplicationContext(), CreateNoteActivity.class);
-        createNote.putExtra(ID_CREATION_MODE, CREATION_MODE_1);
+        createNote.putExtra(CreateNoteActivity.ID_CREATION_MODE, CreateNoteActivity.CREATION_MODE_1);
         startActivity(createNote);
     }
 
@@ -308,21 +306,8 @@ public class ListMainActivity extends AppCompatActivity implements NoteListAdapt
                     mTextViewListSelected, mMenu, mNoteListSelected, false);
         }
         Intent createCheckList = new Intent(this, CreateNoteActivity.class);
-        createCheckList.putExtra(ID_CREATION_MODE, CREATION_MODE_2);
+        createCheckList.putExtra(CreateNoteActivity.ID_CREATION_MODE, CreateNoteActivity.CREATION_MODE_2);
         startActivity(createCheckList);
-    }
-
-    /**
-     *
-     * onNewAlertClicked: Crea la actividad para añadir un recordatorio
-     *
-     * */
-    public void onNewAlertClicked(View view) {
-        // TODO: Mirar alertas y notificaciones para el movil
-        if (isDeleteModeOpen) {
-            isDeleteModeOpen = DeleteModeOperations.deleteModeShutdownNotes(getApplicationContext(),
-                    mTextViewListSelected, mMenu, mNoteListSelected, false);
-        }
     }
 
     /**
@@ -367,8 +352,8 @@ public class ListMainActivity extends AppCompatActivity implements NoteListAdapt
             Intent createNote = new Intent(getApplicationContext(), CreateNoteActivity.class);
             createNote.putExtra(NOTE_ID, id);
             createNote.putExtra(UPDATE_NOTE, true);
-            if (note.getEsChecklist() == 1) createNote.putExtra(ID_CREATION_MODE, CREATION_MODE_1);
-            else if (note.getEsChecklist() == 0) createNote.putExtra(ID_CREATION_MODE, CREATION_MODE_2);
+            if (note.getEsChecklist() == 1) createNote.putExtra(CreateNoteActivity.ID_CREATION_MODE, CreateNoteActivity.CREATION_MODE_1);
+            else if (note.getEsChecklist() == 0) createNote.putExtra(CreateNoteActivity.ID_CREATION_MODE, CreateNoteActivity.CREATION_MODE_2);
             startActivity(createNote);
         }
     }
@@ -504,7 +489,7 @@ public class ListMainActivity extends AppCompatActivity implements NoteListAdapt
         });
 
         View snack = snackbar.getView();
-        TextView snackText = snack.findViewById(android.support.design.R.id.snackbar_action);
+        TextView snackText = snack.findViewById(com.google.android.material.R.id.snackbar_action);
         snackText.setTextColor(ContextCompat.getColor(this, R.color.colorPrimary));
     }
 }

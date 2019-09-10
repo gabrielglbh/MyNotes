@@ -1,18 +1,14 @@
 package com.example.android.noteart.adapters;
 
 import android.content.Context;
-import android.graphics.PorterDuff;
-import android.support.annotation.NonNull;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.example.android.noteart.CreateNoteActivity;
 import com.example.android.noteart.R;
 import com.example.android.noteart.database.NoteEntity;
 
@@ -22,15 +18,16 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
+
 public class NoteListAdapter extends RecyclerView.Adapter<NoteListAdapter.NoteViewHolder> {
 
     private ListItemClickListener onClicked;
     private Context mContext;
     private List<NoteEntity> mNoteEntityList;
 
-    private final String DELIMITER = "#/@/#--";
-
-    private static final String DATE_FORMAT = "dd/MM/yy";
+    private static final String DATE_FORMAT = "dd/M/yy";
     private SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT, Locale.getDefault());
 
     public NoteListAdapter(Context ctx, ListItemClickListener listener) {
@@ -72,9 +69,17 @@ public class NoteListAdapter extends RecyclerView.Adapter<NoteListAdapter.NoteVi
             noteViewHolder.mTextViewBorder.setVisibility(View.VISIBLE);
         }
 
+        if (note.getRecordatorio() == 0){  // No hay recordatorio
+            noteViewHolder.mTextViewIcon.setVisibility(View.GONE);
+        } else if (note.getRecordatorio() == 1) {  // Hay recordatorio
+            String text = "Recordatorio: " + note.getFecha_recordatorio() + " a las " + note.getHora_recordatorio();
+            noteViewHolder.mTextViewFecha.setText(text);
+            noteViewHolder.mTextViewIcon.setVisibility(View.VISIBLE);
+        }
+
         if (note.getEsChecklist() == 0) { // Es una checklist
-            String[] textsArr = textOfCheckBox.split(DELIMITER);
-            String[] checksArr = isCheckedText.split(DELIMITER);
+            String[] textsArr = textOfCheckBox.split(CreateNoteActivity.DELIMITER);
+            String[] checksArr = isCheckedText.split(CreateNoteActivity.DELIMITER);
             ArrayList<String> texts = new ArrayList<>(Arrays.asList(textsArr));
             ArrayList<String> checks = new ArrayList<>(Arrays.asList(checksArr));
 
@@ -143,8 +148,8 @@ public class NoteListAdapter extends RecyclerView.Adapter<NoteListAdapter.NoteVi
     class NoteViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener,
         View.OnLongClickListener {
 
-        TextView mTextViewTitle, mTextViewContent, mTextViewDate, mTextViewFrame, mTextViewBorder;
-        LinearLayout mLinearLayout;
+        TextView mTextViewTitle, mTextViewContent, mTextViewDate, mTextViewFrame, mTextViewBorder, mTextViewFecha;
+        LinearLayout mLinearLayout, mTextViewIcon;
 
         NoteViewHolder(View itemView) {
             super(itemView);
@@ -158,6 +163,8 @@ public class NoteListAdapter extends RecyclerView.Adapter<NoteListAdapter.NoteVi
             mTextViewFrame = itemView.findViewById(R.id.tv_frame);
             mLinearLayout = itemView.findViewById(R.id.ll_linear_layout_main);
             mTextViewBorder = itemView.findViewById(R.id.tv_borderline_note);
+            mTextViewIcon = itemView.findViewById(R.id.ic_recordatorio_nota);
+            mTextViewFecha = itemView.findViewById(R.id.tv_recordatorio_nota);
         }
 
         @Override

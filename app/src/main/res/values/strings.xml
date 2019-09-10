@@ -41,4 +41,5 @@
     <string name="selecciona_hora">Selecciona una hora</string>
     <string name="format_time">hh:mm</string>
     <string name="añadir_boton">Añadir</string>
+    <string name="cancelar_alarma">Cancelar</string>
 </resources>

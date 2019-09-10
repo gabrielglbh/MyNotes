@@ -1,29 +1,26 @@
 package com.example.android.noteart.adapters;
 
 import android.content.Context;
-import android.graphics.Rect;
-import android.support.annotation.NonNull;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.widget.RecyclerView;
 import android.text.InputType;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.android.noteart.R;
 import com.example.android.noteart.commonUtils.SwipeDragAndDropChecklist.ItemTouchHelperListener;
 
 import java.util.ArrayList;
 import java.util.Collections;
+
+import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.RecyclerView;
 
 public class CreateCheckListAdapter extends RecyclerView.Adapter<CreateCheckListAdapter.CheckElemViewHolder>
         implements ItemTouchHelperListener {

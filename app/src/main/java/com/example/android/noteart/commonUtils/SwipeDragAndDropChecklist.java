@@ -2,14 +2,15 @@ package com.example.android.noteart.commonUtils;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.support.annotation.NonNull;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.View;
 
 import com.example.android.noteart.R;
 import com.example.android.noteart.adapters.CreateCheckListAdapter;
+
+import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.RecyclerView;
 
 public class SwipeDragAndDropChecklist extends ItemTouchHelper.Callback {
 

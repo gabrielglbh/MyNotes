@@ -1,9 +1,8 @@
 package com.example.android.noteart;
 
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
-import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.Observer;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -11,21 +10,12 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Rect;
 import android.preference.PreferenceManager;
-import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.util.Linkify;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -46,43 +36,66 @@ import com.example.android.noteart.commonUtils.SwipeDragAndDropChecklist;
 import com.example.android.noteart.database.NoteArtDatabase;
 import com.example.android.noteart.database.NoteEntity;
 import com.example.android.noteart.database.DatabaseQueries;
+import com.example.android.noteart.workerUtils.MyWorkerNotifier;
+import com.google.android.material.snackbar.Snackbar;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Observer;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.work.Data;
+import androidx.work.ExistingWorkPolicy;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkInfo;
+import androidx.work.WorkManager;
 
 public class CreateNoteActivity extends AppCompatActivity {
 
     private EditText mEditTextTitle, mEditTextDescription;
     private TextView mTextViewTimePicker, mTextViewDatePicker;
-    private TextView mToolbarCreationMode, mTextViewAddElem;
-    private LinearLayout ll;
+    private TextView mToolbarCreationMode, mTextViewAddElem, mTextViewRecordatorio;
+    private LinearLayout ll, mLinearLayoutRecordatorio;
     private ScrollView sc;
-    private android.support.v7.widget.Toolbar tb;
+    private Toolbar tb;
     private NoteEntity mNote;
     private Toast mToast;
     private Menu mMenu;
     private RecyclerView mRecyclerView;
     private CreateCheckListAdapter mAdapter;
     private ItemTouchHelper touchHelper;
+    private AlertDialog alarmBuilder;
+    private Button mButtonCancelRecordatorio;
 
-    private final String NOTE_ID = "id_nota";
-    private final String UPDATE_NOTE = "update_nota";
-    private final String ID_BUNDLE_ARCHIVED = "archivada";
-
-    private final String ID_CREATION_MODE = "creationMode";
-    private final String CREATION_MODE_1 = "nota";
-    private final String CREATION_MODE_2 = "checklist";
-
-    private final String DELIMITER = "#/@/#--";
+    public static final String NOTE_ID = "id_nota";
+    public static final String UPDATE_NOTE = "update_nota";
+    public static final String ID_BUNDLE_ARCHIVED = "archivada";
+    public static final String ID_CREATION_MODE = "creationMode";
+    public static final String CREATION_MODE_1 = "nota";
+    public static final String CREATION_MODE_2 = "checklist";
+    public static final String DELIMITER = "#/@/#--";
 
     private boolean archivedPressed = false;
     private boolean isOnDelete = false;
     private String titleOnDelete, descriptionOnDelete, checksOnDelete;
-    private String isOnCreationMode;
-    private int esChecklist;
+    private String isOnCreationMode, givenDateString, textTimeOnNote, textDateOnNote;
+    private String TAG;
+    private int esChecklist, tieneRecordatorio;
 
     private ArrayList<String> editTextListCheckBox = new ArrayList<>();
     private ArrayList<Boolean> isCheckedListCheckBox = new ArrayList<>();
@@ -114,6 +127,8 @@ public class CreateNoteActivity extends AppCompatActivity {
         mRecyclerView = findViewById(R.id.rv_main_checklist);
         mToolbarCreationMode = findViewById(R.id.toolbar_creation_mode);
         mTextViewAddElem = findViewById(R.id.toolbar_add_elem);
+        mTextViewRecordatorio = findViewById(R.id.tv_recordatorio);
+        mLinearLayoutRecordatorio = findViewById(R.id.ll_recordatorio);
         tb = findViewById(R.id.toolbar_create_note);
         ll = findViewById(R.id.linear_main);
         sc = findViewById(R.id.scroll_view);
@@ -140,6 +155,7 @@ public class CreateNoteActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         setSharedPreferences();
+        if (alarmBuilder != null) alarmBuilder.dismiss();
     }
 
     /**
@@ -230,11 +246,17 @@ public class CreateNoteActivity extends AppCompatActivity {
             makeToast(getString(R.string.error_toast_delete));
         }
 
-        if(!isOnDelete) {
+        // if(!isOnDelete) {
             if (intent.hasExtra(UPDATE_NOTE)) {
                 if (mEditTextDescription.getText().toString().equals(mNote.getDescripcion())
                         && mEditTextTitle.getText().toString().equals(mNote.getTitulo())
                         && mNote.getArchivada() == checkArchivada(archivedPressed)) {
+                    if (intent.hasExtra(MyWorkerNotifier.FINISHED)
+                            && getIntent().getBooleanExtra(MyWorkerNotifier.FINISHED, false)) {
+                        NoteEntity note = getNote();
+                        note.setId(intent.getIntExtra(NOTE_ID, -1));
+                        DatabaseQueries.updateQuery(note, this);
+                    }
                 } else {
                     if (mEditTextDescription.getText().toString().isEmpty()
                             && mEditTextTitle.getText().toString().isEmpty()) {
@@ -246,12 +268,12 @@ public class CreateNoteActivity extends AppCompatActivity {
                     }
                 }
             } else {
-                if (!mEditTextDescription.getText().toString().isEmpty()
+                 if (!mEditTextDescription.getText().toString().isEmpty()
                         || !mEditTextTitle.getText().toString().isEmpty()) {
-                    DatabaseQueries.insertQuery(getNote(), this);
-                }
-            }
+                     DatabaseQueries.insertQuery(getNote(), this);
+                 }
         }
+        //}
     }
 
     /**
@@ -271,7 +293,7 @@ public class CreateNoteActivity extends AppCompatActivity {
             deleteNote(intent);
             makeToast(getString(R.string.error_toast_delete_checklist));
         } else {
-            if (!isOnDelete) {
+            // if (!isOnDelete) {
                 String[] res = getCurrentDescriptionAndCheckBoxes();
                 String description = res[0];
                 String areChecked = res[1];
@@ -281,6 +303,12 @@ public class CreateNoteActivity extends AppCompatActivity {
                             && areChecked.equals(mNote.getCheckbox())
                             && mEditTextTitle.getText().toString().equals(mNote.getTitulo())
                             && mNote.getArchivada() == checkArchivada(archivedPressed)) {
+                        if (intent.hasExtra(MyWorkerNotifier.FINISHED)
+                                && getIntent().getBooleanExtra(MyWorkerNotifier.FINISHED, false)) {
+                            NoteEntity note = getNote();
+                            note.setId(intent.getIntExtra(NOTE_ID, -1));
+                            DatabaseQueries.updateQuery(note, this);
+                        }
                     } else {
                         if (et.size() <= 1 && mEditTextTitle.getText().toString().isEmpty()) {
                             deleteNote(intent);
@@ -296,7 +324,7 @@ public class CreateNoteActivity extends AppCompatActivity {
                         DatabaseQueries.insertQuery(getNote(), this);
                     }
                 }
-            }
+            // }
         }
     }
 
@@ -486,7 +514,8 @@ public class CreateNoteActivity extends AppCompatActivity {
             areChecked = res[1];
         }
 
-        return new NoteEntity(title, description, areChecked, date, archivada, esChecklist);
+        return new NoteEntity(title, description, areChecked, date, archivada, esChecklist,
+                TAG, tieneRecordatorio, textTimeOnNote, textDateOnNote);
     }
 
     /**
@@ -593,6 +622,8 @@ public class CreateNoteActivity extends AppCompatActivity {
      *
      * loadQuery: SELECT * FROM note WHERE id = :id
      *
+     * Además, se verifica si existe recordatorio o no en la nota
+     *
      * */
     private void loadQuery(final Intent intent) {
         int noteID = intent.getIntExtra(NOTE_ID, -1);
@@ -603,6 +634,35 @@ public class CreateNoteActivity extends AppCompatActivity {
             public void onChanged(@Nullable NoteEntity n) {
                 note.removeObserver(this);
                 mNote = n;
+
+                Log.d("0", "ANTES: ----- FECHA " + n.getFecha_recordatorio());
+                Log.d("1", "ANTES: ----- HORA " + n.getHora_recordatorio());
+                Log.d("2", "ANTES: ----- TIENE RECORDATORIO? " + Integer.toString(n.getRecordatorio()));
+
+                if (getIntent().hasExtra(MyWorkerNotifier.FINISHED)
+                        && getIntent().getBooleanExtra(MyWorkerNotifier.FINISHED, false)) {
+                    setViewsRecordatorioOff();
+                } else {
+                    TAG = n.getTag();
+                }
+
+                // TODO: Al darle a una notificación UNICAMENTE en una nota en modo INSERT, n/mNote es null
+
+                // TODO: Al darle a una notificación en modo UPDATE con el Extra de FINISHED, no se quita el recordatorio de la UI
+
+                // TODO: error al cancelar el recordatorio desde nota en UPDATE y con FINISHED
+
+                Log.d("0", "DESPUES: ----- FECHA " + n.getFecha_recordatorio());
+                Log.d("1", "DESPUES: ----- HORA " + n.getHora_recordatorio());
+                Log.d("2", "DESPUES: ----- TIENE RECORDATORIO? " + Integer.toString(n.getRecordatorio()));
+
+                if (n.getRecordatorio() == 1) {     // Hay Recordatorio
+                    mLinearLayoutRecordatorio.setVisibility(View.VISIBLE);
+                    String text = "Recordatorio: " + n.getFecha_recordatorio() + " a las " + n.getHora_recordatorio();
+                    mTextViewRecordatorio.setText(text);
+                } else if (n.getRecordatorio() == 0) {    // No hay Recordatorio
+                    mLinearLayoutRecordatorio.setVisibility(View.GONE);
+                }
                 setFields(n);
             }
         });
@@ -617,6 +677,22 @@ public class CreateNoteActivity extends AppCompatActivity {
         NoteEntity note = getNote();
         note.setId(b.getIntExtra(NOTE_ID, -1));
         DatabaseQueries.deleteQuery(note, this);
+    }
+
+    /**
+     *
+     * updateNoteOnRecordatorio: se hace update de los campos en referencia al recordatorio al
+     * añadir una alarma o modificarla
+     *
+     * */
+    private void updateNoteOnRecordatorio(Intent b) {
+        NoteEntity note = getNote();
+        note.setId(b.getIntExtra(NOTE_ID, -1));
+        note.setTag(TAG);
+        note.setRecordatorio(tieneRecordatorio);
+        note.setHora_recordatorio(textTimeOnNote);
+        note.setFecha_recordatorio(textDateOnNote);
+        DatabaseQueries.updateQuery(note, this);
     }
 
     /**
@@ -650,11 +726,13 @@ public class CreateNoteActivity extends AppCompatActivity {
             public void onDismissed(Snackbar transientBottomBar, int event) {
                 super.onDismissed(transientBottomBar, event);
                 tb.setTranslationY(0);
+                titleOnDelete = null;
+                descriptionOnDelete = null;
             }
         });
 
         View snack = snackbar.getView();
-        TextView snackText = snack.findViewById(android.support.design.R.id.snackbar_action);
+        TextView snackText = snack.findViewById(com.google.android.material.R.id.snackbar_action);
         snackText.setTextColor(ContextCompat.getColor(this, R.color.colorPrimary));
     }
 
@@ -760,35 +838,215 @@ public class CreateNoteActivity extends AppCompatActivity {
         makeToast("Nota copiada al portapapeles");
     }
 
+    /********************************************************************************************
+     *                                                                                           *
+     *                                  METODOS DE ALARMAS                                       *
+     *                                                                                           *
+     *********************************************************************************************/
+
+    /**
+     *
+     * addAlarmToNote: crea el dialogo para establecer la notificacion o recordatorio
+     *
+     * */
     public void addAlarmToNote(View view) {
-        View mView = getLayoutInflater().inflate(R.layout.create_alert, null);
-        mTextViewTimePicker = mView.findViewById(R.id.et_show_time);
-        mTextViewDatePicker = mView.findViewById(R.id.et_show_date);
+        View v = getCurrentFocus();
+        if (v instanceof EditText) {
+            Rect outRect = new Rect();
+            v.getGlobalVisibleRect(outRect);
+            v.clearFocus();
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+        }
+
+        View customView = getLayoutInflater().inflate(R.layout.create_alert, null);
+        mTextViewTimePicker = customView.findViewById(R.id.et_show_time);
+        mTextViewDatePicker = customView.findViewById(R.id.et_show_date);
+        mButtonCancelRecordatorio = customView.findViewById(R.id.button_cancel);
+
+        if (mLinearLayoutRecordatorio.getVisibility() == View.VISIBLE) {
+            if (getIntent().hasExtra(UPDATE_NOTE)) {
+                if (mNote.getHora_recordatorio() != null && mNote.getFecha_recordatorio() != null) {
+                    mTextViewTimePicker.setText(mNote.getHora_recordatorio());
+                    mTextViewDatePicker.setText(mNote.getFecha_recordatorio());
+                    mButtonCancelRecordatorio.setVisibility(View.VISIBLE);
+                }
+            } else {
+                mTextViewTimePicker.setText(textTimeOnNote);
+                mTextViewDatePicker.setText(textDateOnNote);
+                mButtonCancelRecordatorio.setVisibility(View.VISIBLE);
+            }
+        } else {
+            mButtonCancelRecordatorio.setVisibility(View.GONE);
+        }
 
         AlertDialog.Builder alarm = new AlertDialog.Builder(this)
-                .setView(R.layout.create_alert);
-        alarm.create().show();
+                .setView(customView);
+        alarmBuilder = alarm.create();
+        alarmBuilder.show();
     }
 
+    /**
+     *
+     * addAlarm: se crea el worker para establecer cuando se mostrará la notificación al usuario
+     * en funcion de lo elegido en los date pickers
+     *
+     * Listener para cuando la notificación salte, updatear la UI
+     *
+     * */
     public void addAlarm(View view) {
-        makeToast("Recordatorio añadido");
+        if (mTextViewDatePicker.getText().toString().isEmpty() ||
+                mTextViewTimePicker.getText().toString().isEmpty()) {
+            makeToast("Rellena los campos");
+        } else {
+            String title = mEditTextTitle.getText().toString();
+            final long toWait = calculateDurationToAlert();
+
+            Data data;
+            if (getIntent().hasExtra(UPDATE_NOTE)) {
+                data = new Data.Builder()
+                        .putString(MyWorkerNotifier.KEY_WORKER_TITLE_NOTIFICATION, title)
+                        .putInt(MyWorkerNotifier.KEY_WORKER_ID_NOTIFICATION, mNote.getId())
+                        .putInt(MyWorkerNotifier.KEY_WORKER_MODE_NOTIFICATION, mNote.getEsChecklist())
+                        .build();
+            } else {
+                data = new Data.Builder()
+                        .putString(MyWorkerNotifier.KEY_WORKER_TITLE_NOTIFICATION, title)
+                        .putInt(MyWorkerNotifier.KEY_WORKER_ID_NOTIFICATION, 0)
+                        .putInt(MyWorkerNotifier.KEY_WORKER_MODE_NOTIFICATION, esChecklist)
+                        .build();
+            }
+
+            OneTimeWorkRequest work = new OneTimeWorkRequest.Builder(MyWorkerNotifier.class)
+                    .setInputData(data)
+                    .setInitialDelay(toWait, TimeUnit.MILLISECONDS)
+                    .build();
+
+            TAG = work.getId().toString();
+
+            WorkManager.getInstance(this)
+                    .enqueueUniqueWork(TAG, ExistingWorkPolicy.REPLACE, work);
+
+            // Solo funciona si al notificarse el usuario permanece en esta actividad
+            WorkManager.getInstance(this).getWorkInfoByIdLiveData(UUID.fromString(TAG))
+                    .observe(this, new Observer<WorkInfo>() {
+                        @Override
+                        public void onChanged(@Nullable WorkInfo workInfo) {
+                            if (workInfo != null && workInfo.getState() == WorkInfo.State.SUCCEEDED) {
+                                setViewsRecordatorioOff();
+                            }
+                        }
+                    });
+
+            makeToast("Recordatorio añadido");
+
+            tieneRecordatorio = 1;
+            mLinearLayoutRecordatorio.setVisibility(View.VISIBLE);
+            String text = "Recordar el " + textDateOnNote + " a las " + textTimeOnNote;
+            mTextViewRecordatorio.setText(text);
+            alarmBuilder.dismiss();
+
+            updateNoteOnRecordatorio(getIntent());
+        }
     }
 
+    /**
+     *
+     * cancelAlarm: permite la eliminación del recordatorio, si existe
+     *
+     * */
+    public void cancelAlarm(View view) {
+        WorkManager.getInstance(this).cancelWorkById(UUID.fromString(TAG));
+        setViewsRecordatorioOff();
+        alarmBuilder.dismiss();
+        makeToast("Recordatorio cancelado.");
+    }
+
+    /**
+     *
+     * setViewsRecordatorioOff: método auxiliar para limpiar las variables auxiliares para estatar
+     * que no hay recordatorio en la nota
+     *
+     * */
+    private void setViewsRecordatorioOff() {
+        tieneRecordatorio = 0;
+        textTimeOnNote = null;
+        textDateOnNote = null;
+        TAG = null;
+        mLinearLayoutRecordatorio.setVisibility(View.GONE);
+        updateNoteOnRecordatorio(getIntent());
+    }
+
+    /**
+     *
+     * calculateDurationToAlert: calculo en MILISEGUNDOS que resta del dia actual al dia programado
+     *
+     * */
+    private long calculateDurationToAlert() {
+        final String scheduledDateAux = mTextViewDatePicker.getText().toString();
+        final String[] splitDate = scheduledDateAux.split("/");
+        final String scheduledDate = splitDate[0].concat("/" + (Integer.parseInt(splitDate[1])-1) + "/" + splitDate[2]);
+        final String scheduledTimeAux = mTextViewTimePicker.getText().toString();
+        final String[] splitTime = scheduledTimeAux.split(":");
+        if (splitTime[1].charAt(0) == '0') splitTime[1] = splitTime[1].substring(1);
+        final String scheduledTime = splitTime[0].concat(":" + splitTime[1]);
+
+        Calendar currentCalendar = Calendar.getInstance();
+        final String currentYear = Integer.toString(currentCalendar.get(Calendar.YEAR));
+        final String currentMonth = Integer.toString(currentCalendar.get(Calendar.MONTH));
+        final String currentDay = Integer.toString(currentCalendar.get(Calendar.DAY_OF_MONTH));
+        final String[] currentDate = {currentDay, currentMonth, currentYear};
+        final String currentHour = Integer.toString(currentCalendar.get(Calendar.HOUR_OF_DAY));
+        final String currentMinute = Integer.toString(currentCalendar.get(Calendar.MINUTE));
+        final String[] currentTime = {currentHour, currentMinute};
+
+        final String date = TextUtils.join("/", currentDate);
+        final String time = TextUtils.join(":", currentTime);
+
+        givenDateString = scheduledDate.concat(" " + scheduledTime);
+        final String currentDateString = date.concat(" " + time);
+
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/M/yyyy hh:mm");
+        try {
+            Date scheduled = sdf.parse(givenDateString);
+            Date current = sdf.parse(currentDateString);
+            return scheduled.getTime() - current.getTime();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    /**
+     *
+     * openTimePickerDialog: abre el dialogo para escoger una hora
+     *
+     * */
     public void openTimePickerDialog(View view) {
         TimePickerDialog mTimePicker;
         Calendar mcurrentTime = Calendar.getInstance();
         final int hour = mcurrentTime.get(Calendar.HOUR_OF_DAY);
         final int minute = mcurrentTime.get(Calendar.MINUTE);
 
-        mTimePicker = new TimePickerDialog(this, new TimePickerDialog.OnTimeSetListener() {
+        mTimePicker = new TimePickerDialog(this, R.style.PickerDialogTheme, new TimePickerDialog.OnTimeSetListener() {
             @Override
             public void onTimeSet(TimePicker timePicker, int hourSel, int minuteSel) {
-                mTextViewTimePicker.setText(hourSel + ":" + minuteSel);
+                String text = Integer.toString(hourSel) + ":";
+                if (minuteSel >= 0 && minuteSel <= 9) text = text.concat("0" + Integer.toString(minuteSel));
+                else text = text.concat(Integer.toString(minuteSel));
+                mTextViewTimePicker.setText(text);
+                mTextViewTimePicker.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.colorTextContent));
+                textTimeOnNote = text;
             }
         }, hour, minute, true);
         mTimePicker.show();
     }
 
+    /**
+     *
+     * openDatePickerDialog: abre el dialogo para escoger una fecha
+     *
+     * */
     public void openDatePickerDialog(View view) {
        DatePickerDialog mDatePicker;
         Calendar mcurrentDate = Calendar.getInstance();
@@ -796,9 +1054,12 @@ public class CreateNoteActivity extends AppCompatActivity {
         final int mMonth = mcurrentDate.get(Calendar.MONTH);
         final int mDay = mcurrentDate.get(Calendar.DAY_OF_MONTH);
 
-        mDatePicker = new DatePickerDialog(this, new DatePickerDialog.OnDateSetListener() {
+        mDatePicker = new DatePickerDialog(this, R.style.PickerDialogTheme, new DatePickerDialog.OnDateSetListener() {
             public void onDateSet(DatePicker datepicker, int selectedyear, int selectedmonth, int selectedday) {
-                mTextViewDatePicker.setText("" + selectedday + "/" + selectedmonth + "/" + selectedyear);
+                String text = Integer.toString(selectedday) + "/" + Integer.toString(selectedmonth+1) + "/" + Integer.toString(selectedyear);
+                mTextViewDatePicker.setText(text);
+                mTextViewDatePicker.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.colorTextContent));
+                textDateOnNote = text;
             }
         }, mYear, mMonth, mDay);
         mDatePicker.show();

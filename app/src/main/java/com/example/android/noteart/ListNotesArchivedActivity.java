@@ -1,17 +1,11 @@
 package com.example.android.noteart;
 
+import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.preference.PreferenceManager;
-import android.support.design.widget.Snackbar;
-import android.support.v4.app.NavUtils;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -24,8 +18,17 @@ import com.example.android.noteart.database.NoteEntity;
 import com.example.android.noteart.commonUtils.CustomSharedPreferences;
 import com.example.android.noteart.database.DatabaseQueries;
 import com.example.android.noteart.commonUtils.DeleteModeOperations;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NavUtils;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 public class ListNotesArchivedActivity extends AppCompatActivity
         implements NoteListAdapter.ListItemClickListener {
@@ -36,22 +39,13 @@ public class ListNotesArchivedActivity extends AppCompatActivity
     private Menu mMenu;
     private AlertDialog alt, altDelete;
 
-    private String defaultFilter = "Fecha";
-    private String defaultOrder = "DESC";
     private int itemClicked = 0, totalCountSelected = 1;
     private ArrayList<NoteEntity> mNoteListSelected = new ArrayList<>();
     private ArrayList<LinearLayout> mTextViewListSelected = new ArrayList<>();
     private ArrayList<Integer> mNotesIdList = new ArrayList<>();
     private boolean isDeleteModeOpen = false;
 
-    private final String orderAsc = "ASC";
-    private final String orderDesc = "DESC";
-
     private String[] ID_BUNDLE = {"priority_archived", "orderBy_archived"};
-    private String ID_DELETEMODE_BUNDLE = "onDeleteMode";
-    private final String ID_CREATION_MODE = "creationMode";
-    private final String CREATION_MODE_1 = "nota";
-    private final String CREATION_MODE_2 = "checklist";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,7 +70,7 @@ public class ListNotesArchivedActivity extends AppCompatActivity
     @Override
     protected void onStop() {
         super.onStop();
-        String[] data = {defaultFilter, defaultOrder};
+        String[] data = {ListMainActivity.defaultFilter, ListMainActivity.defaultOrder};
         CustomSharedPreferences.setSharedPreferences(this, ID_BUNDLE, data);
     }
 
@@ -93,8 +87,8 @@ public class ListNotesArchivedActivity extends AppCompatActivity
      * */
     private void getSharedPreferences() {
         android.content.SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        defaultFilter = preferences.getString(ID_BUNDLE[0], "");
-        defaultOrder = preferences.getString(ID_BUNDLE[1], "");
+        ListMainActivity.defaultFilter = preferences.getString(ID_BUNDLE[0], "");
+        ListMainActivity.defaultOrder = preferences.getString(ID_BUNDLE[1], "");
     }
 
     /**
@@ -106,7 +100,7 @@ public class ListNotesArchivedActivity extends AppCompatActivity
     private void setFiltersOfBundle() {
         final String TITULO = "Título";
         final String FECHA = "Fecha";
-        switch (defaultFilter) {
+        switch (ListMainActivity.defaultFilter) {
             case FECHA:
                 itemClicked = 0;
                 break;
@@ -115,6 +109,28 @@ public class ListNotesArchivedActivity extends AppCompatActivity
                 break;
         }
         loadNotes();
+    }
+
+    /**
+     *
+     * onConfigurationChanged: Listener para cambiar el layoutmanager del recyclerview para
+     * cuando este en modo retrato y modo landscape
+     *
+     * */
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            GridLayoutManager lm = new GridLayoutManager(this, 2);
+            mRecyclerViewMain.setLayoutManager(lm);
+            mRecyclerViewMain.setAdapter(mAdapterNote);
+            mAdapterNote.notifyDataSetChanged();
+        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
+            LinearLayoutManager lm = new LinearLayoutManager(this);
+            mRecyclerViewMain.setLayoutManager(lm);
+            mRecyclerViewMain.setAdapter(mAdapterNote);
+            mAdapterNote.notifyDataSetChanged();
+        }
     }
 
     /**
@@ -144,7 +160,7 @@ public class ListNotesArchivedActivity extends AppCompatActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.archived_menu, menu);
-        if (defaultOrder.equals(orderAsc)) {
+        if (ListMainActivity.defaultOrder.equals(ListMainActivity.orderAsc)) {
             menu.getItem(2).setIcon(getDrawable(R.drawable.ic_up));
         } else {
             menu.getItem(2).setIcon(getDrawable(R.drawable.ic_down));
@@ -196,7 +212,7 @@ public class ListNotesArchivedActivity extends AppCompatActivity
                                                 itemClicked = 1;
                                                 break;
                                         }
-                                        defaultFilter = filterArray[filter];
+                                        ListMainActivity.defaultFilter = filterArray[filter];
                                         loadNotes();
                                         alt.dismiss();
                                     }
@@ -205,12 +221,12 @@ public class ListNotesArchivedActivity extends AppCompatActivity
                 alt.show();
                 break;
             case R.id.menu_order_by:
-                if (defaultOrder.equals(orderAsc)) {
+                if (ListMainActivity.defaultOrder.equals(ListMainActivity.orderAsc)) {
                     mMenu.getItem(2).setIcon(getDrawable(R.drawable.ic_down));
-                    defaultOrder = orderDesc;
+                    ListMainActivity.defaultOrder = ListMainActivity.orderDesc;
                 } else {
                     mMenu.getItem(2).setIcon(getDrawable(R.drawable.ic_up));
-                    defaultOrder = orderAsc;
+                    ListMainActivity.defaultOrder = ListMainActivity.orderAsc;
                 }
                 loadNotes();
                 break;
@@ -225,7 +241,7 @@ public class ListNotesArchivedActivity extends AppCompatActivity
                 setTitle(getString(R.string.archived_notes));
                 isDeleteModeOpen = DeleteModeOperations.deleteModeShutdownNotes(this,
                         mTextViewListSelected, mMenu, mNoteListSelected, true);
-                CustomSharedPreferences.setSharedPreferencesDeleteMode(this, ID_DELETEMODE_BUNDLE, isDeleteModeOpen);
+                CustomSharedPreferences.setSharedPreferencesDeleteMode(this, ListMainActivity.ID_DELETEMODE_BUNDLE, isDeleteModeOpen);
                 break;
         }
         return true;
@@ -243,7 +259,7 @@ public class ListNotesArchivedActivity extends AppCompatActivity
      *
      * */
     private void loadNotes() {
-        DatabaseQueries.loadNotes(this, defaultFilter, defaultOrder,
+        DatabaseQueries.loadNotes(this, ListMainActivity.defaultFilter, ListMainActivity.defaultOrder,
                 1, mAdapterNote, this);
     }
 
@@ -275,7 +291,7 @@ public class ListNotesArchivedActivity extends AppCompatActivity
                     totalCountSelected = 1;
                     isDeleteModeOpen = DeleteModeOperations.deleteModeShutdownNotes(this,
                             mTextViewListSelected, mMenu, mNoteListSelected, true);
-                    CustomSharedPreferences.setSharedPreferencesDeleteMode(this, ID_DELETEMODE_BUNDLE, isDeleteModeOpen);
+                    CustomSharedPreferences.setSharedPreferencesDeleteMode(this, ListMainActivity.ID_DELETEMODE_BUNDLE, isDeleteModeOpen);
                 }
             }
             else {
@@ -289,8 +305,8 @@ public class ListNotesArchivedActivity extends AppCompatActivity
             Intent createNote = new Intent(getApplicationContext(), CreateNoteActivity.class);
             createNote.putExtra(NOTE_ID, id);
             createNote.putExtra(UPDATE_NOTE, true);
-            if (note.getEsChecklist() == 1) createNote.putExtra(ID_CREATION_MODE, CREATION_MODE_1);
-            else if (note.getEsChecklist() == 0) createNote.putExtra(ID_CREATION_MODE, CREATION_MODE_2);
+            if (note.getEsChecklist() == 1) createNote.putExtra(CreateNoteActivity.ID_CREATION_MODE, CreateNoteActivity.CREATION_MODE_1);
+            else if (note.getEsChecklist() == 0) createNote.putExtra(CreateNoteActivity.ID_CREATION_MODE, CreateNoteActivity.CREATION_MODE_2);
             startActivity(createNote);
         }
     }
@@ -305,7 +321,7 @@ public class ListNotesArchivedActivity extends AppCompatActivity
     public void onElementLongClicked(int id, NoteEntity note, LinearLayout frame) {
         isDeleteModeOpen = true;
         setTitle(Integer.toString(totalCountSelected));
-        CustomSharedPreferences.setSharedPreferencesDeleteMode(this, ID_DELETEMODE_BUNDLE, isDeleteModeOpen);
+        CustomSharedPreferences.setSharedPreferencesDeleteMode(this, ListMainActivity.ID_DELETEMODE_BUNDLE, isDeleteModeOpen);
         DeleteModeOperations.changeColorFrame(frame, this, R.color.selectedFrame);
 
         mNoteListSelected.add(note);
@@ -328,7 +344,7 @@ public class ListNotesArchivedActivity extends AppCompatActivity
         if (isDeleteModeOpen) {
             isDeleteModeOpen = DeleteModeOperations.deleteModeShutdownNotes(
                     this, mTextViewListSelected, mMenu, mNoteListSelected, true);
-            CustomSharedPreferences.setSharedPreferencesDeleteMode(this, ID_DELETEMODE_BUNDLE, isDeleteModeOpen);
+            CustomSharedPreferences.setSharedPreferencesDeleteMode(this, ListMainActivity.ID_DELETEMODE_BUNDLE, isDeleteModeOpen);
         }
         else super.onBackPressed();
     }
@@ -368,7 +384,8 @@ public class ListNotesArchivedActivity extends AppCompatActivity
                         mMenu.getItem(3).setVisible(true);
 
                         isDeleteModeOpen = false;
-                        CustomSharedPreferences.setSharedPreferencesDeleteMode(getApplicationContext(), ID_DELETEMODE_BUNDLE, isDeleteModeOpen);
+                        CustomSharedPreferences.setSharedPreferencesDeleteMode(getApplicationContext(),
+                                ListMainActivity.ID_DELETEMODE_BUNDLE, isDeleteModeOpen);
 
                         totalCountSelected = 1;
                         setTitle(getString(R.string.archived_notes));
@@ -407,12 +424,13 @@ public class ListNotesArchivedActivity extends AppCompatActivity
                 mTextViewListSelected.clear();
                 mNotesIdList.clear();
                 isDeleteModeOpen = false;
-                CustomSharedPreferences.setSharedPreferencesDeleteMode(getApplicationContext(), ID_DELETEMODE_BUNDLE, isDeleteModeOpen);
+                CustomSharedPreferences.setSharedPreferencesDeleteMode(getApplicationContext(),
+                        ListMainActivity.ID_DELETEMODE_BUNDLE, isDeleteModeOpen);
             }
         });
 
         View snack = snackbar.getView();
-        TextView snackText = snack.findViewById(android.support.design.R.id.snackbar_action);
+        TextView snackText = snack.findViewById(com.google.android.material.R.id.snackbar_action);
         snackText.setTextColor(ContextCompat.getColor(this, R.color.colorPrimary));
     }
 }

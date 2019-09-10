@@ -1,13 +1,14 @@
 package com.example.android.noteart.database;
 
-import android.arch.lifecycle.LifecycleOwner;
-import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.Observer;
 import android.content.Context;
 
 import com.example.android.noteart.adapters.NoteListAdapter;
 
 import java.util.List;
+
+import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Observer;
 
 public class DatabaseQueries {
 
@@ -16,14 +17,19 @@ public class DatabaseQueries {
      * createNoteToArchived: crear nota y guardar lo mismo pero en archivadas o no
      *
      * */
-    public static void createNote(NoteEntity note, int archived, int esChecklist, Context ctx) {
+    public static void createNote(NoteEntity note, int archived, int esChecklist,
+                                  int recordatorio, Context ctx) {
         NoteEntity newNote = new NoteEntity(
                 note.getTitulo(),
                 note.getDescripcion(),
                 note.getCheckbox(),
                 note.getFecha(),
                 archived,
-                esChecklist
+                esChecklist,
+                note.getTag(),
+                recordatorio,
+                note.getHora_recordatorio(),
+                note.getFecha_recordatorio()
         );
         DatabaseQueries.insertQuery(newNote, ctx);
     }

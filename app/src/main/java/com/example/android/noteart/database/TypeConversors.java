@@ -1,8 +1,8 @@
 package com.example.android.noteart.database;
 
-import android.arch.persistence.room.TypeConverter;
-
 import java.util.Date;
+
+import androidx.room.TypeConverter;
 
 public class TypeConversors {
 

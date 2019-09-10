@@ -6,11 +6,8 @@ import android.graphics.Canvas;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.example.android.noteart.adapters.NoteListAdapter;
@@ -19,6 +16,11 @@ import com.example.android.noteart.database.DatabaseQueries;
 import com.example.android.noteart.database.NoteEntity;
 
 import java.util.List;
+
+import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.RecyclerView;
 
 /**
  *
@@ -38,7 +40,7 @@ public class SwipeHandleToArchived extends ItemTouchHelper.SimpleCallback{
     private String ID_DELETEMODE_BUNDLE = "onDeleteMode";
 
     public SwipeHandleToArchived(NoteListAdapter adapter, Context ctx, int archived, String msg, boolean isArchived) {
-        super(0,ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT);
+        super(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT);
         this.adapter = adapter;
         this.ctx = ctx;
         this.archived = archived;
@@ -69,7 +71,7 @@ public class SwipeHandleToArchived extends ItemTouchHelper.SimpleCallback{
     public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(ctx);
         boolean isDeleteModeOn = preferences.getBoolean(ID_DELETEMODE_BUNDLE, true);
-        int esChecklist = 0;
+        int esChecklist, recordatorio;
 
         if (isDeleteModeOn) {
             adapter.notifyItemChanged(viewHolder.getAdapterPosition());
@@ -80,8 +82,9 @@ public class SwipeHandleToArchived extends ItemTouchHelper.SimpleCallback{
             final NoteEntity note = notes.get(position);
 
             esChecklist = note.getEsChecklist();
+            recordatorio = note.getRecordatorio();
             DatabaseQueries.deleteQuery(note, ctx);
-            DatabaseQueries.createNote(note, archived, esChecklist, ctx);
+            DatabaseQueries.createNote(note, archived, esChecklist, recordatorio, ctx);
             makeToast(msg, ctx);
         }
     }
