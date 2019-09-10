@@ -4,4 +4,4 @@ This is a project entirely made with Android Studio and Java for taking notes in
 
 It is capable of creating checklists, simple notes and you can attach alarms on notes.
 
-This project has helped to start programming in Android: RecyclerViews, Room Database, LiveData, WorkManager and many more components. 
+This project has helped me to start programming in Android: RecyclerViews, Room Database, LiveData, WorkManager and many more components. 
