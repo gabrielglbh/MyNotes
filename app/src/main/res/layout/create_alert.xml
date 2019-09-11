@@ -112,6 +112,7 @@
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:id="@+id/button_añadir"
             android:background="@drawable/round_square_button"
             android:text="@string/añadir_boton"
             android:textSize="15sp"

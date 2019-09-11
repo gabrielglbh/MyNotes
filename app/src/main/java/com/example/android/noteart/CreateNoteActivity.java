@@ -80,7 +80,7 @@ public class CreateNoteActivity extends AppCompatActivity {
     private CreateCheckListAdapter mAdapter;
     private ItemTouchHelper touchHelper;
     private AlertDialog alarmBuilder;
-    private Button mButtonCancelRecordatorio;
+    private Button mButtonCancelRecordatorio, mButtonAñadirRecordatorio;
 
     public static final String NOTE_ID = "id_nota";
     public static final String UPDATE_NOTE = "update_nota";
@@ -270,6 +270,7 @@ public class CreateNoteActivity extends AppCompatActivity {
             } else {
                  if (!mEditTextDescription.getText().toString().isEmpty()
                         || !mEditTextTitle.getText().toString().isEmpty()) {
+                     Log.d("00", "INSERT: ID " + getNote().getId());
                      DatabaseQueries.insertQuery(getNote(), this);
                  }
         }
@@ -627,6 +628,9 @@ public class CreateNoteActivity extends AppCompatActivity {
      * */
     private void loadQuery(final Intent intent) {
         int noteID = intent.getIntExtra(NOTE_ID, -1);
+
+        Log.d("aID", "ID de la NOTA: " + noteID);
+
         final LiveData<NoteEntity> note = NoteArtDatabase.getsInstance(getApplicationContext())
                 .noteDao().loadNote(noteID);
         note.observe(this, new Observer<NoteEntity>() {
@@ -635,10 +639,6 @@ public class CreateNoteActivity extends AppCompatActivity {
                 note.removeObserver(this);
                 mNote = n;
 
-                Log.d("0", "ANTES: ----- FECHA " + n.getFecha_recordatorio());
-                Log.d("1", "ANTES: ----- HORA " + n.getHora_recordatorio());
-                Log.d("2", "ANTES: ----- TIENE RECORDATORIO? " + Integer.toString(n.getRecordatorio()));
-
                 if (getIntent().hasExtra(MyWorkerNotifier.FINISHED)
                         && getIntent().getBooleanExtra(MyWorkerNotifier.FINISHED, false)) {
                     setViewsRecordatorioOff();
@@ -646,21 +646,11 @@ public class CreateNoteActivity extends AppCompatActivity {
                     TAG = n.getTag();
                 }
 
-                // TODO: Al darle a una notificación UNICAMENTE en una nota en modo INSERT, n/mNote es null
-
-                // TODO: Al darle a una notificación en modo UPDATE con el Extra de FINISHED, no se quita el recordatorio de la UI
-
-                // TODO: error al cancelar el recordatorio desde nota en UPDATE y con FINISHED
-
-                Log.d("0", "DESPUES: ----- FECHA " + n.getFecha_recordatorio());
-                Log.d("1", "DESPUES: ----- HORA " + n.getHora_recordatorio());
-                Log.d("2", "DESPUES: ----- TIENE RECORDATORIO? " + Integer.toString(n.getRecordatorio()));
-
-                if (n.getRecordatorio() == 1) {     // Hay Recordatorio
+                if (mNote.getRecordatorio() == 1) {     // Hay Recordatorio
                     mLinearLayoutRecordatorio.setVisibility(View.VISIBLE);
-                    String text = "Recordatorio: " + n.getFecha_recordatorio() + " a las " + n.getHora_recordatorio();
+                    String text = "Recordatorio: " + mNote.getFecha_recordatorio() + " a las " + mNote.getHora_recordatorio();
                     mTextViewRecordatorio.setText(text);
-                } else if (n.getRecordatorio() == 0) {    // No hay Recordatorio
+                } else if (mNote.getRecordatorio() == 0) {    // No hay Recordatorio
                     mLinearLayoutRecordatorio.setVisibility(View.GONE);
                 }
                 setFields(n);
@@ -692,6 +682,7 @@ public class CreateNoteActivity extends AppCompatActivity {
         note.setRecordatorio(tieneRecordatorio);
         note.setHora_recordatorio(textTimeOnNote);
         note.setFecha_recordatorio(textDateOnNote);
+        mNote = note;
         DatabaseQueries.updateQuery(note, this);
     }
 
@@ -863,20 +854,24 @@ public class CreateNoteActivity extends AppCompatActivity {
         mTextViewTimePicker = customView.findViewById(R.id.et_show_time);
         mTextViewDatePicker = customView.findViewById(R.id.et_show_date);
         mButtonCancelRecordatorio = customView.findViewById(R.id.button_cancel);
+        mButtonAñadirRecordatorio = customView.findViewById(R.id.button_añadir);
 
         if (mLinearLayoutRecordatorio.getVisibility() == View.VISIBLE) {
             if (getIntent().hasExtra(UPDATE_NOTE)) {
                 if (mNote.getHora_recordatorio() != null && mNote.getFecha_recordatorio() != null) {
                     mTextViewTimePicker.setText(mNote.getHora_recordatorio());
                     mTextViewDatePicker.setText(mNote.getFecha_recordatorio());
+                    mButtonAñadirRecordatorio.setText("Modificar");
                     mButtonCancelRecordatorio.setVisibility(View.VISIBLE);
                 }
             } else {
                 mTextViewTimePicker.setText(textTimeOnNote);
                 mTextViewDatePicker.setText(textDateOnNote);
+                mButtonAñadirRecordatorio.setText("Modificar");
                 mButtonCancelRecordatorio.setVisibility(View.VISIBLE);
             }
         } else {
+            mButtonAñadirRecordatorio.setText("Añadir");
             mButtonCancelRecordatorio.setVisibility(View.GONE);
         }
 
@@ -909,44 +904,53 @@ public class CreateNoteActivity extends AppCompatActivity {
                         .putInt(MyWorkerNotifier.KEY_WORKER_ID_NOTIFICATION, mNote.getId())
                         .putInt(MyWorkerNotifier.KEY_WORKER_MODE_NOTIFICATION, mNote.getEsChecklist())
                         .build();
+
+                OneTimeWorkRequest work = new OneTimeWorkRequest.Builder(MyWorkerNotifier.class)
+                        .setInputData(data)
+                        .setInitialDelay(toWait, TimeUnit.MILLISECONDS)
+                        .build();
+
+                if (mNote.getTag() == null) { TAG = work.getId().toString(); }
+                else { TAG = mNote.getTag(); }
+
+                WorkManager.getInstance(this)
+                        .enqueueUniqueWork(TAG, ExistingWorkPolicy.REPLACE, work);
+
+                // Solo funciona si al notificarse el usuario permanece en esta actividad
+                WorkManager.getInstance(this).getWorkInfoByIdLiveData(UUID.fromString(TAG))
+                        .observe(this, new Observer<WorkInfo>() {
+                            @Override
+                            public void onChanged(@Nullable WorkInfo workInfo) {
+                                if (workInfo != null && workInfo.getState() == WorkInfo.State.SUCCEEDED) {
+                                    setViewsRecordatorioOff();
+                                }
+                            }
+                        });
+
+                makeToast("Recordatorio añadido");
+
+                tieneRecordatorio = 1;
+                mLinearLayoutRecordatorio.setVisibility(View.VISIBLE);
+                String text = "Recordatorio: " + textDateOnNote + " a las " + textTimeOnNote;
+                mTextViewRecordatorio.setText(text);
+                alarmBuilder.dismiss();
+
+                updateNoteOnRecordatorio(getIntent());
+
+                // TODO: Actualizar la UI tras la muestra de una notificación en referencia a una nota
+
+                // TODO: Hacer posible que se puedan agregar recordatorios en una nota recien insertada
+                //      Hay problema con el ID, no puede ser 0 porque va en función del getAdapterPosition()
             } else {
+                makeToast("Para agregar un recordatorio, guarda la nota primero");
+                /*
                 data = new Data.Builder()
                         .putString(MyWorkerNotifier.KEY_WORKER_TITLE_NOTIFICATION, title)
                         .putInt(MyWorkerNotifier.KEY_WORKER_ID_NOTIFICATION, 0)
                         .putInt(MyWorkerNotifier.KEY_WORKER_MODE_NOTIFICATION, esChecklist)
                         .build();
+                */
             }
-
-            OneTimeWorkRequest work = new OneTimeWorkRequest.Builder(MyWorkerNotifier.class)
-                    .setInputData(data)
-                    .setInitialDelay(toWait, TimeUnit.MILLISECONDS)
-                    .build();
-
-            TAG = work.getId().toString();
-
-            WorkManager.getInstance(this)
-                    .enqueueUniqueWork(TAG, ExistingWorkPolicy.REPLACE, work);
-
-            // Solo funciona si al notificarse el usuario permanece en esta actividad
-            WorkManager.getInstance(this).getWorkInfoByIdLiveData(UUID.fromString(TAG))
-                    .observe(this, new Observer<WorkInfo>() {
-                        @Override
-                        public void onChanged(@Nullable WorkInfo workInfo) {
-                            if (workInfo != null && workInfo.getState() == WorkInfo.State.SUCCEEDED) {
-                                setViewsRecordatorioOff();
-                            }
-                        }
-                    });
-
-            makeToast("Recordatorio añadido");
-
-            tieneRecordatorio = 1;
-            mLinearLayoutRecordatorio.setVisibility(View.VISIBLE);
-            String text = "Recordar el " + textDateOnNote + " a las " + textTimeOnNote;
-            mTextViewRecordatorio.setText(text);
-            alarmBuilder.dismiss();
-
-            updateNoteOnRecordatorio(getIntent());
         }
     }
 

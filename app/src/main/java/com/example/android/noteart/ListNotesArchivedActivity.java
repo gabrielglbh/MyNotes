@@ -21,6 +21,7 @@ import com.example.android.noteart.commonUtils.DeleteModeOperations;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
+import java.util.UUID;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NavUtils;
@@ -29,6 +30,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.work.WorkManager;
 
 public class ListNotesArchivedActivity extends AppCompatActivity
         implements NoteListAdapter.ListItemClickListener {
@@ -373,6 +375,9 @@ public class ListNotesArchivedActivity extends AppCompatActivity
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         for (int x = 0; x < mNoteListSelected.size(); x++) {
+                            if (mNoteListSelected.get(x).getRecordatorio() == 1) {
+                                WorkManager.getInstance(getApplicationContext()).cancelWorkById(UUID.fromString(mNoteListSelected.get(x).getTag()));
+                            }
                             DatabaseQueries.deleteQuery(mNoteListSelected.get(x),
                                     getApplicationContext());
                             DeleteModeOperations.changeColorFrame(mTextViewListSelected.get(x),

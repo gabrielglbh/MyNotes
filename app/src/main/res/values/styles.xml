@@ -14,7 +14,7 @@
         <item name="android:homeAsUpIndicator">@drawable/ic_arrow_back</item>
         <item name="android:actionOverflowButtonStyle">@style/option_more</item>
 
-        <!-- DATE PICKER -->
+        <!-- DATE PICKER Y TIME PICKER -->
         <item name="colorControlActivated">@color/colorPrimary</item>
 
     </style>
@@ -33,7 +33,7 @@
         <item name="android:src">@drawable/ic_more</item>
     </style>
 
-    <!-- DATE PICKER -->
+    <!-- DATE PICKER Y TIME PICKER -->
     <!-- Y llamarlo al crear el datePicker con el estilo -->
     <style name="PickerDialogTheme" parent="Theme.AppCompat.Light.Dialog">
         <item name="colorAccent">@color/colorPrimaryDark</item>

@@ -3,13 +3,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/menu_recordatorios"
-        android:orderInCategory="6"
-        app:showAsAction="ifRoom"
-        android:icon="@drawable/ic_bell"
-        android:title="@string/recordatorios_menu"/>
-
-    <item
         android:id="@+id/menu_notas_archivadas"
         android:orderInCategory="5"
         app:showAsAction="ifRoom"

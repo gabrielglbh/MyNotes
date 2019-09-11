@@ -24,6 +24,7 @@ import com.example.android.noteart.commonUtils.SwipeHandleToArchived;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
+import java.util.UUID;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.menu.MenuBuilder;
@@ -33,6 +34,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.work.WorkManager;
 
 public class ListMainActivity extends AppCompatActivity implements NoteListAdapter.ListItemClickListener {
 
@@ -127,14 +129,15 @@ public class ListMainActivity extends AppCompatActivity implements NoteListAdapt
      * onCreateOptionsMenu: Crea el menu y hace set del icono de ASC o DESC conforme a deafultOrder
      *
      * */
-    @SuppressLint("RestrictedApi")
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
+        /*
         if(menu instanceof MenuBuilder){
             MenuBuilder m = (MenuBuilder) menu;
             m.setOptionalIconsVisible(true);
         }
+        */
 
         if (defaultOrder.equals(orderAsc)) {
             menu.getItem(2).setIcon(getDrawable(R.drawable.ic_up));
@@ -478,6 +481,11 @@ public class ListMainActivity extends AppCompatActivity implements NoteListAdapt
         snackbar.addCallback(new Snackbar.Callback() {
             @Override
             public void onDismissed(Snackbar transientBottomBar, int event) {
+                for (int x = 0; x < mNoteListSelected.size(); x++) {
+                    if (mNoteListSelected.get(x).getRecordatorio() == 1) {
+                        WorkManager.getInstance(getApplicationContext()).cancelWorkById(UUID.fromString(mNoteListSelected.get(x).getTag()));
+                    }
+                }
                 super.onDismissed(transientBottomBar, event);
                 tb.setTranslationY(0);
                 mNoteListSelected.clear();
