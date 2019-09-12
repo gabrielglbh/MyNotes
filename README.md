@@ -8,6 +8,4 @@ This project has helped me to start programming in Android: RecyclerViews, Room 
 
 At the time, WorkManager is not working on real devices but only on emulator devices.
 
-# Installation
-
 To run the project make sure to Clean Project and then Rebuild Project in Android Studio if any error appears.
