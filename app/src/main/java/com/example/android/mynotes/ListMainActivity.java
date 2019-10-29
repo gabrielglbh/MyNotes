@@ -116,12 +116,12 @@ public class ListMainActivity extends AppCompatActivity implements NoteListAdapt
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
-        /*
+
         if(menu instanceof MenuBuilder){
             MenuBuilder m = (MenuBuilder) menu;
             m.setOptionalIconsVisible(true);
         }
-        */
+
 
         if (defaultOrder.equals(orderAsc)) {
             menu.getItem(2).setIcon(getDrawable(R.drawable.ic_up));

@@ -12,7 +12,6 @@
         android:background="@drawable/round_square"/>
 
     <LinearLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/ll_linear_layout_main"
         android:orientation="vertical"
         android:layout_width="match_parent"
@@ -56,7 +55,7 @@
                 android:textSize="14sp"
                 android:textStyle="italic"
                 android:textColor="@color/colorTextContent"
-                android:layout_marginEnd="15dp"
+                android:layout_marginEnd="8dp"
                 android:layout_marginStart="20dp"/>
 
         </LinearLayout>

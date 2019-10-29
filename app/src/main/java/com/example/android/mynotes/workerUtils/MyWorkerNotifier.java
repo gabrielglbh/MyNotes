@@ -48,13 +48,13 @@ public class MyWorkerNotifier extends Worker {
 
     private void createNotification(String titulo, int id, int isChecklist) {
         Context ctx = getApplicationContext();
-        NotificationManager notificationManager = (NotificationManager) ctx.getSystemService(ctx.NOTIFICATION_SERVICE);
+        NotificationManager notificationManager = (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
 
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel notificationChannel = new NotificationChannel(
                     "NOTIFICATION_CHANNEL",
                     "Prioridad",
-                    NotificationManager.IMPORTANCE_HIGH);
+                    NotificationManager.IMPORTANCE_DEFAULT);
             notificationManager.createNotificationChannel(notificationChannel);
         }
 
@@ -63,14 +63,14 @@ public class MyWorkerNotifier extends Worker {
                 .setColor(ContextCompat.getColor(ctx, R.color.colorPrimary))
                 .setSmallIcon(R.drawable.ic_note_menu)
                 .setContentTitle(titulo)
+                .setChannelId("NOTIFICATION_CHANNEL")
                 .setContentText("Vengo a recordarte de que tienes una nota muy importante.")
                 .setDefaults(Notification.DEFAULT_VIBRATE)
                 .setContentIntent(goToNote(id, isChecklist))
                 .setAutoCancel(true);
 
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN
-                && android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            builder.setPriority(NotificationCompat.PRIORITY_HIGH);
+        if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            builder.setPriority(NotificationCompat.PRIORITY_DEFAULT);
         }
 
         notificationManager.notify(ID_NOTIFICACION, builder.build());
