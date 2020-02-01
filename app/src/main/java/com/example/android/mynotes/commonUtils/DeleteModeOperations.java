@@ -9,6 +9,7 @@ import com.example.android.mynotes.database.NoteEntity;
 
 import java.util.ArrayList;
 
+import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 
 public class DeleteModeOperations {
@@ -18,9 +19,9 @@ public class DeleteModeOperations {
      * changeFrameColorList: changes the color of linear layouts to colorPrimaryActionBar
      *
      * */
-    private static void changeFrameColorList(ArrayList<LinearLayout> tv, Context ctx) {
+    private static void changeFrameColorList(ArrayList<CardView> tv, ArrayList<LinearLayout> ll, Context ctx) {
         for (int x = 0; x < tv.size(); x++) {
-            changeColorFrame(tv.get(x), ctx, R.color.colorPrimaryActionBar);
+            changeColorFrame(tv.get(x), ll.get(x), ctx, R.color.colorPrimaryActionBar);
         }
     }
 
@@ -29,13 +30,14 @@ public class DeleteModeOperations {
      * changeColorFrame: chenges color of individual linear layour to 'color'
      *
      * */
-    public static void changeColorFrame(LinearLayout tv, Context ctx, int color) {
-        tv.setBackgroundColor(ContextCompat.getColor(ctx, color));
+    public static void changeColorFrame(CardView tv, LinearLayout ll, Context ctx, int color) {
+        tv.setCardBackgroundColor(ContextCompat.getColor(ctx, color));
+        ll.setBackgroundColor(ContextCompat.getColor(ctx, color));
     }
 
-    public static void removeNote(int id, LinearLayout frame, NoteEntity note,
+    public static void removeNote(int id, CardView frame, NoteEntity note,
                                   ArrayList<Integer> idList,
-                                  ArrayList<LinearLayout> tvList,
+                                  ArrayList<CardView> tvList,
                                   ArrayList<NoteEntity> noteList) {
         idList.remove(idList.indexOf(id));
         tvList.remove(frame);
@@ -47,9 +49,10 @@ public class DeleteModeOperations {
      * deleteModeShutdownNotes: manages the exit of delete mode
      *
      **/
-    public static boolean deleteModeShutdownNotes(Context ctx, ArrayList<LinearLayout> tvList, Menu menu,
+    public static boolean deleteModeShutdownNotes(Context ctx, ArrayList<CardView> tvList,
+                                                  ArrayList<LinearLayout> llList, Menu menu,
                                                   ArrayList<NoteEntity> noteList, boolean isArchived) {
-        DeleteModeOperations.changeFrameColorList(tvList, ctx);
+        DeleteModeOperations.changeFrameColorList(tvList, llList, ctx);
         menu.getItem(0).setVisible(false);
         menu.getItem(1).setVisible(false);
         menu.getItem(2).setVisible(true);

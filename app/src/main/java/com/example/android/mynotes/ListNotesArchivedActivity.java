@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 import androidx.core.app.NavUtils;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -43,7 +44,8 @@ public class ListNotesArchivedActivity extends AppCompatActivity
 
     private int itemClicked = 0, totalCountSelected = 1;
     private ArrayList<NoteEntity> mNoteListSelected = new ArrayList<>();
-    private ArrayList<LinearLayout> mTextViewListSelected = new ArrayList<>();
+    private ArrayList<CardView> mTextViewListSelected = new ArrayList<>();
+    private ArrayList<LinearLayout> mTextViewListLLSelected = new ArrayList<>();
     private ArrayList<Integer> mNotesIdList = new ArrayList<>();
     private boolean isDeleteModeOpen = false;
 
@@ -200,7 +202,7 @@ public class ListNotesArchivedActivity extends AppCompatActivity
                 totalCountSelected = 1;
                 setTitle(getString(R.string.archived_notes));
                 isDeleteModeOpen = DeleteModeOperations.deleteModeShutdownNotes(this,
-                        mTextViewListSelected, mMenu, mNoteListSelected, true);
+                        mTextViewListSelected, mTextViewListLLSelected, mMenu, mNoteListSelected, true);
                 CustomSharedPreferences.setSharedPreferencesDeleteMode(this, ListMainActivity.ID_DELETEMODE_BUNDLE, isDeleteModeOpen);
                 break;
         }
@@ -218,22 +220,22 @@ public class ListNotesArchivedActivity extends AppCompatActivity
                 1, mAdapterNote, this);
     }
 
-    public void onElementClicked(int id, NoteEntity note, LinearLayout frame) {
+    public void onElementClicked(int id, NoteEntity note, CardView frame, LinearLayout ll) {
         final String NOTE_ID = "id_nota";
         final String UPDATE_NOTE = "update_nota";
         if (isDeleteModeOpen) {
-            DeleteModeOperations.changeColorFrame(frame, this, R.color.selectedFrame);
+            DeleteModeOperations.changeColorFrame(frame, ll, this, R.color.selectedFrame);
             if (mNotesIdList.contains(id)) {
                 totalCountSelected--;
                 setTitle(Integer.toString(totalCountSelected));
                 DeleteModeOperations.removeNote(id, frame, note,
                         mNotesIdList, mTextViewListSelected, mNoteListSelected);
-                DeleteModeOperations.changeColorFrame(frame, this, R.color.colorPrimaryActionBar);
+                DeleteModeOperations.changeColorFrame(frame, ll, this, R.color.colorPrimaryActionBar);
                 if (mNotesIdList.isEmpty()) {
                     setTitle(getString(R.string.archived_notes));
                     totalCountSelected = 1;
                     isDeleteModeOpen = DeleteModeOperations.deleteModeShutdownNotes(this,
-                            mTextViewListSelected, mMenu, mNoteListSelected, true);
+                            mTextViewListSelected, mTextViewListLLSelected, mMenu, mNoteListSelected, true);
                     CustomSharedPreferences.setSharedPreferencesDeleteMode(this, ListMainActivity.ID_DELETEMODE_BUNDLE, isDeleteModeOpen);
                 }
             }
@@ -242,6 +244,7 @@ public class ListNotesArchivedActivity extends AppCompatActivity
                 setTitle(Integer.toString(totalCountSelected));
                 mNoteListSelected.add(note);
                 mTextViewListSelected.add(frame);
+                mTextViewListLLSelected.add(ll);
                 mNotesIdList.add(id);
             }
         } else {
@@ -255,14 +258,15 @@ public class ListNotesArchivedActivity extends AppCompatActivity
     }
 
     @Override
-    public void onElementLongClicked(int id, NoteEntity note, LinearLayout frame) {
+    public void onElementLongClicked(int id, NoteEntity note, CardView frame, LinearLayout ll) {
         isDeleteModeOpen = true;
         setTitle(Integer.toString(totalCountSelected));
         CustomSharedPreferences.setSharedPreferencesDeleteMode(this, ListMainActivity.ID_DELETEMODE_BUNDLE, isDeleteModeOpen);
-        DeleteModeOperations.changeColorFrame(frame, this, R.color.selectedFrame);
+        DeleteModeOperations.changeColorFrame(frame, ll, this, R.color.selectedFrame);
 
         mNoteListSelected.add(note);
         mTextViewListSelected.add(frame);
+        mTextViewListLLSelected.add(ll);
         mNotesIdList.add(id);
 
         mMenu.getItem(0).setVisible(true);
@@ -275,7 +279,7 @@ public class ListNotesArchivedActivity extends AppCompatActivity
     public void onBackPressed() {
         if (isDeleteModeOpen) {
             isDeleteModeOpen = DeleteModeOperations.deleteModeShutdownNotes(
-                    this, mTextViewListSelected, mMenu, mNoteListSelected, true);
+                    this, mTextViewListSelected, mTextViewListLLSelected, mMenu, mNoteListSelected, true);
             CustomSharedPreferences.setSharedPreferencesDeleteMode(this, ListMainActivity.ID_DELETEMODE_BUNDLE, isDeleteModeOpen);
         }
         else super.onBackPressed();
@@ -297,12 +301,14 @@ public class ListNotesArchivedActivity extends AppCompatActivity
                     public void onClick(DialogInterface dialogInterface, int i) {
                         for (int x = 0; x < mNoteListSelected.size(); x++) {
                             if (mNoteListSelected.get(x).getRecordatorio() == 1) {
-                                WorkManager.getInstance(getApplicationContext()).cancelWorkById(UUID.fromString(mNoteListSelected.get(x).getTag()));
+                                WorkManager.getInstance(getApplicationContext()).cancelWorkById(
+                                        UUID.fromString(mNoteListSelected.get(x).getTag()));
                             }
                             DatabaseQueries.deleteQuery(mNoteListSelected.get(x),
                                     getApplicationContext());
                             DeleteModeOperations.changeColorFrame(mTextViewListSelected.get(x),
-                                    getApplicationContext(), R.color.colorPrimaryActionBar);
+                                    mTextViewListLLSelected.get(x), getApplicationContext(),
+                                    R.color.colorPrimaryActionBar);
                         }
                         mMenu.getItem(0).setVisible(false);
                         mMenu.getItem(1).setVisible(false);
@@ -343,6 +349,7 @@ public class ListNotesArchivedActivity extends AppCompatActivity
                 super.onDismissed(transientBottomBar, event);
                 mNoteListSelected.clear();
                 mTextViewListSelected.clear();
+                mTextViewListLLSelected.clear();
                 mNotesIdList.clear();
                 isDeleteModeOpen = false;
                 CustomSharedPreferences.setSharedPreferencesDeleteMode(getApplicationContext(),

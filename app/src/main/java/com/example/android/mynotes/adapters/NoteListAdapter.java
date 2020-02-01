@@ -5,6 +5,7 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.Locale;
 
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
 public class NoteListAdapter extends RecyclerView.Adapter<NoteListAdapter.NoteViewHolder> {
@@ -113,14 +115,16 @@ public class NoteListAdapter extends RecyclerView.Adapter<NoteListAdapter.NoteVi
     }
 
     public interface ListItemClickListener {
-        void onElementClicked(int id, NoteEntity note, LinearLayout frame);
-        void onElementLongClicked(int id, NoteEntity note, LinearLayout frame);
+        void onElementClicked(int id, NoteEntity note, CardView frame, LinearLayout ll);
+        void onElementLongClicked(int id, NoteEntity note, CardView frame, LinearLayout ll);
     }
 
     class NoteViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener,
         View.OnLongClickListener {
 
-        TextView mTextViewTitle, mTextViewContent, mTextViewDate, mTextViewFrame, mTextViewBorder, mTextViewFecha;
+        TextView mTextViewTitle, mTextViewContent, mTextViewDate, mTextViewBorder, mTextViewFecha;
+        FrameLayout mTextViewFrame;
+        CardView mCardElement;
         LinearLayout mLinearLayout, mTextViewIcon;
 
         NoteViewHolder(View itemView) {
@@ -129,6 +133,7 @@ public class NoteListAdapter extends RecyclerView.Adapter<NoteListAdapter.NoteVi
             itemView.setOnClickListener(this);
             itemView.setOnLongClickListener(this);
 
+            mCardElement = itemView.findViewById(R.id.card_elem);
             mTextViewTitle = itemView.findViewById(R.id.tv_title_note);
             mTextViewContent = itemView.findViewById(R.id.tv_content_note);
             mTextViewDate = itemView.findViewById(R.id.tv_date_note);
@@ -143,14 +148,14 @@ public class NoteListAdapter extends RecyclerView.Adapter<NoteListAdapter.NoteVi
         public void onClick(View view) {
             int id = mNoteEntityList.get(getAdapterPosition()).getId();
             final NoteEntity note = mNoteEntityList.get(getAdapterPosition());
-            onClicked.onElementClicked(id, note, mLinearLayout);
+            onClicked.onElementClicked(id, note, mCardElement, mLinearLayout);
         }
 
         @Override
         public boolean onLongClick(final View view) {
             int id = mNoteEntityList.get(getAdapterPosition()).getId();
             final NoteEntity note = mNoteEntityList.get(getAdapterPosition());
-            onClicked.onElementLongClicked(id, note, mLinearLayout);
+            onClicked.onElementLongClicked(id, note, mCardElement, mLinearLayout);
             return true;
         }
     }
